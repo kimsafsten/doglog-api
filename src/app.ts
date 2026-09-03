@@ -18,11 +18,20 @@ app.get("/dogs", (_request, response) => {
 });
 
 app.get("/dogs/:id", (request, response) => {
-    const dog = db
+  const dog = db
     .prepare("SELECT id, name, breed FROM dogs WHERE id = ?")
     .get(request.params.id);
 
-    response.status(200).json(dog);
+  if (!dog) {
+    return response.status(404).json({
+      error: {
+        code: "DOG_NOT_FOUND",
+        message: "Dog not found",
+      },
+    });
+  }
+
+  return response.status(200).json(dog);
 });
 
 app.post("/dogs", (request, response) => {
