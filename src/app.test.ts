@@ -9,7 +9,7 @@ beforeEach(() => {
 });
 
 describe("GET /health", () => {
-    it("should return status 200 OK and API status", async () => {
+    it("returns status 200 OK and API status", async () => {
         const response = await request(app).get("/health");
 
         expect(response.status).toBe(200);
@@ -32,5 +32,23 @@ describe("POST /dogs", () => {
       name: "Luna",
       breed: "Border Collie",
     });
+  });
+});
+
+describe("GET /dogs", () => {
+  it("returns all dogs", async () => {
+    db.prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
+    .run("Luna", "Border Collie");
+
+    const response = await request(app).get("/dogs");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([
+      {
+        id: expect.any(Number),
+        name: "Luna",
+        breed: "Border Collie",
+      },
+    ]);
   });
 });
