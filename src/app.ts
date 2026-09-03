@@ -17,6 +17,14 @@ app.get("/dogs", (_request, response) => {
     response.status(200).json(dogs);
 });
 
+app.get("/dogs/:id", (request, response) => {
+    const dog = db
+    .prepare("SELECT id, name, breed FROM dogs WHERE id = ?")
+    .get(request.params.id);
+
+    response.status(200).json(dog);
+});
+
 app.post("/dogs", (request, response) => {
     const { name, breed } = request.body;
 
