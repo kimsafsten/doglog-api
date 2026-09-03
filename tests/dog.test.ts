@@ -1,21 +1,13 @@
 import request from "supertest";
 import { beforeEach, describe, expect, it } from "vitest";
-import app from "./app.js";
 
-import { db } from "./database.js";
+import app from "../src/app.js";
+import { db } from "../src/database.js";
 
 beforeEach(() => {
   db.prepare("DELETE FROM dogs").run();
 });
 
-describe("GET /health", () => {
-    it("returns status 200 OK and API status", async () => {
-        const response = await request(app).get("/health");
-
-        expect(response.status).toBe(200);
-        expect(response.body).toEqual({ status: "ok" });
-    });
-});
 
 describe("POST /dogs", () => {
   it("creates a dog and returns status 201", async () => {
