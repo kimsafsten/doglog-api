@@ -37,6 +37,19 @@ app.get("/dogs/:id", (request, response) => {
 app.post("/dogs", (request, response) => {
     const { name, breed } = request.body;
 
+    const existingDog = db
+        .prepare("SELECT id FROM dogs WHERE name = ? COLLATE NOCASE")
+        .get(name);
+
+    if (existingDog) {
+        return response.status(409).json({
+        error: {
+            code: "DOG_ALREADY_EXISTS",
+            message: "A dog with this name already exists",
+        },
+        });
+    }
+
     const result = db
     .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
     .run(name, breed);
@@ -45,7 +58,7 @@ app.post("/dogs", (request, response) => {
     .prepare("SELECT id, name, breed FROM dogs WHERE id = ?")
     .get(result.lastInsertRowid);
 
-    response.status(201).json(dog);
+    return response.status(201).json(dog);
 });
 
 export default app;
