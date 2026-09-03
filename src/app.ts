@@ -9,6 +9,14 @@ app.get("/health", (_request, response) => {
     response.status(200).json({ status: "ok" });
 });
 
+app.get("/dogs", (_request, response) => {
+    const dogs = db
+    .prepare("SELECT id, name, breed FROM dogs ORDER BY id")
+    .all();
+
+    response.status(200).json(dogs);
+});
+
 app.post("/dogs", (request, response) => {
     const { name, breed } = request.body;
 
