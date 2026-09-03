@@ -1,6 +1,12 @@
 import request from "supertest";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import app from "./app.js";
+
+import { db } from "./database.js";
+
+beforeEach(() => {
+  db.prepare("DELETE FROM dogs").run();
+});
 
 describe("GET /health", () => {
     it("should return status 200 OK and API status", async () => {
