@@ -1,5 +1,6 @@
 import express from "express";
 import { db } from "./database.js";
+import { createDogSchema } from "./schemas/dog.schema.js";
 
 const app = express();
 
@@ -35,7 +36,19 @@ app.get("/dogs/:id", (request, response) => {
 });
 
 app.post("/dogs", (request, response) => {
-    const { name, breed } = request.body;
+    const validationResult = createDogSchema.safeParse(request.body);
+
+    if (!validationResult.success) {
+    return response.status(400).json({
+        error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid request body",
+        details: validationResult.error.flatten().fieldErrors,
+        },
+    });
+    }
+
+    const { name, breed } = validationResult.data;
 
     const existingDog = db
         .prepare("SELECT id FROM dogs WHERE name = ? COLLATE NOCASE")

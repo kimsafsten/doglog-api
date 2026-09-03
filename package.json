@@ -22,7 +22,8 @@
   "homepage": "https://github.com/kimsafsten/doglog-api#readme",
   "dependencies": {
     "better-sqlite3": "^13.0.3",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^9.6.0",
