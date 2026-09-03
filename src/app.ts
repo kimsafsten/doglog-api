@@ -74,4 +74,35 @@ app.post("/dogs", (request, response) => {
     return response.status(201).json(dog);
 });
 
+app.patch("/dogs/:id", (request, response) => {
+  const result = db
+    .prepare(`
+      UPDATE dogs
+      SET
+        name = COALESCE(?, name),
+        breed = COALESCE(?, breed)
+      WHERE id = ?
+    `)
+    .run(
+      request.body.name ?? null,
+      request.body.breed ?? null,
+      request.params.id,
+    );
+
+  if (result.changes === 0) {
+    return response.status(404).json({
+      error: {
+        code: "DOG_NOT_FOUND",
+        message: "Dog not found",
+      },
+    });
+  }
+
+  const dog = db
+    .prepare("SELECT id, name, breed FROM dogs WHERE id = ?")
+    .get(request.params.id);
+
+  return response.status(200).json(dog);
+});
+
 export default app;
