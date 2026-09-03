@@ -33,6 +33,26 @@ describe("POST /dogs", () => {
       breed: "Border Collie",
     });
   });
+
+  it("returns status 409 when dog name already exists", async () => {
+  await request(app).post("/dogs").send({
+    name: "Luna",
+    breed: "Border Collie",
+  });
+
+  const response = await request(app).post("/dogs").send({
+    name: "luna",
+    breed: "Border Collie",
+  });
+
+  expect(response.status).toBe(409);
+  expect(response.body).toEqual({
+    error: {
+      code: "DOG_ALREADY_EXISTS",
+      message: "A dog with this name already exists",
+    },
+  });
+});
 });
 
 describe("GET /dogs", () => {
