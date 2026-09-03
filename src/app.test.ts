@@ -52,3 +52,22 @@ describe("GET /dogs", () => {
     ]);
   });
 });
+
+describe("GET /dogs/:id", () => {
+  it("returns one dog by id", async () => {
+    const result = db
+      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
+      .run("Luna", "Border Collie");
+
+    const response = await request(app).get(
+      `/dogs/${result.lastInsertRowid}`,
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      id: Number(result.lastInsertRowid),
+      name: "Luna",
+      breed: "Border Collie",
+    });
+  });
+});
