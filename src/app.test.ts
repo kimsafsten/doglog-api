@@ -70,4 +70,16 @@ describe("GET /dogs/:id", () => {
       breed: "Border Collie",
     });
   });
+
+  it("returns status 404 when dog does not exist", async () => {
+  const response = await request(app).get("/dogs/999999");
+
+  expect(response.status).toBe(404);
+  expect(response.body).toEqual({
+    error: {
+      code: "DOG_NOT_FOUND",
+      message: "Dog not found",
+    },
+  });
+});
 });
