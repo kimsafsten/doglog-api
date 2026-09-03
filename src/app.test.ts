@@ -53,6 +53,21 @@ describe("POST /dogs", () => {
     },
   });
 });
+
+
+it("returns status 400 when name is missing", async () => {
+  const response = await request(app).post("/dogs").send({
+    breed: "Border Collie",
+  });
+
+  expect(response.status).toBe(400);
+  expect(response.body).toMatchObject({
+    error: {
+      code: "VALIDATION_ERROR",
+      message: "Invalid request body",
+    },
+  });
+});
 });
 
 describe("GET /dogs", () => {
