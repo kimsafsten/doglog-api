@@ -10,3 +10,21 @@ describe("GET /health", () => {
         expect(response.body).toEqual({ status: "ok" });
     });
 });
+
+describe("POST /dogs", () => {
+  it("creates a dog and returns status 201", async () => {
+    const newDog = {
+      name: "Luna",
+      breed: "Border Collie",
+    };
+
+    const response = await request(app).post("/dogs").send(newDog);
+
+    expect(response.status).toBe(201);
+    expect(response.body).toMatchObject({
+      id: expect.any(Number),
+      name: "Luna",
+      breed: "Border Collie",
+    });
+  });
+});
