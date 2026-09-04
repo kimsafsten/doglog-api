@@ -105,4 +105,21 @@ app.patch("/dogs/:id", (request, response) => {
   return response.status(200).json(dog);
 });
 
+app.delete("/dogs/:id", (request, response) => {
+  const result = db
+    .prepare("DELETE FROM dogs WHERE id = ?")
+    .run(request.params.id);
+
+    if (result.changes === 0) {
+    return response.status(404).json({
+      error: {
+        code: "DOG_NOT_FOUND",
+        message: "Dog not found",
+      },
+    });
+  }
+
+  return response.status(204).json({});
+});
+
 export default app;
