@@ -12,40 +12,40 @@ app.get("/health", (_request, response) => {
 
 app.get("/dogs", (_request, response) => {
     const dogs = db
-    .prepare("SELECT id, name, breed FROM dogs ORDER BY id")
-    .all();
+        .prepare("SELECT id, name, breed FROM dogs ORDER BY id")
+        .all();
 
     response.status(200).json(dogs);
 });
 
 app.get("/dogs/:id", (request, response) => {
-  const dog = db
-    .prepare("SELECT id, name, breed FROM dogs WHERE id = ?")
-    .get(request.params.id);
+    const dog = db
+        .prepare("SELECT id, name, breed FROM dogs WHERE id = ?")
+        .get(request.params.id);
 
-  if (!dog) {
-    return response.status(404).json({
-      error: {
-        code: "DOG_NOT_FOUND",
-        message: "Dog not found",
-      },
-    });
-  }
+    if (!dog) {
+        return response.status(404).json({
+            error: {
+                code: "DOG_NOT_FOUND",
+                message: "Dog not found",
+            },
+        });
+    }
 
-  return response.status(200).json(dog);
+    return response.status(200).json(dog);
 });
 
 app.post("/dogs", (request, response) => {
     const validationResult = createDogSchema.safeParse(request.body);
 
     if (!validationResult.success) {
-    return response.status(400).json({
-        error: {
-        code: "VALIDATION_ERROR",
-        message: "Invalid request body",
-        details: validationResult.error.flatten().fieldErrors,
-        },
-    });
+        return response.status(400).json({
+            error: {
+                code: "VALIDATION_ERROR",
+                message: "Invalid request body",
+                details: validationResult.error.flatten().fieldErrors,
+            },
+        });
     }
 
     const { name, breed } = validationResult.data;
@@ -56,20 +56,20 @@ app.post("/dogs", (request, response) => {
 
     if (existingDog) {
         return response.status(409).json({
-        error: {
-            code: "DOG_ALREADY_EXISTS",
-            message: "A dog with this name already exists",
-        },
+            error: {
+                code: "DOG_ALREADY_EXISTS",
+                message: "A dog with this name already exists",
+            },
         });
     }
 
     const result = db
-    .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-    .run(name, breed);
+        .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
+        .run(name, breed);
 
     const dog = db
-    .prepare("SELECT id, name, breed FROM dogs WHERE id = ?")
-    .get(result.lastInsertRowid);
+        .prepare("SELECT id, name, breed FROM dogs WHERE id = ?")
+        .get(result.lastInsertRowid);
 
     return response.status(201).json(dog);
 });
@@ -78,62 +78,82 @@ app.patch("/dogs/:id", (request, response) => {
     const validationResult = updateDogSchema.safeParse(request.body);
 
     if (!validationResult.success) {
-    return response.status(400).json({
-        error: {
-        code: "VALIDATION_ERROR",
-        message: "Invalid request body",
-        details: validationResult.error.flatten().fieldErrors,
-        },
-    });
+        return response.status(400).json({
+            error: {
+                code: "VALIDATION_ERROR",
+                message: "Invalid request body",
+                details: validationResult.error.flatten().fieldErrors,
+            },
+        });
     }
 
     const { name, breed } = validationResult.data;
 
-  const result = db
-    .prepare(`
+    const result = db
+        .prepare(`
       UPDATE dogs
       SET
         name = COALESCE(?, name),
         breed = COALESCE(?, breed)
       WHERE id = ?
     `)
-    .run(
-      name ?? null,
-     breed ?? null,
-      request.params.id,
-    );
+        .run(
+            name ?? null,
+            breed ?? null,
+            request.params.id,
+        );
 
-  if (result.changes === 0) {
-    return response.status(404).json({
-      error: {
-        code: "DOG_NOT_FOUND",
-        message: "Dog not found",
-      },
-    });
-  }
+    if (name !== undefined) {
+        const duplicateDog = db
+            .prepare(`
+                SELECT id
+                FROM dogs
+                WHERE name = ? COLLATE NOCASE
+                    AND id != ?
+                `)
+            .get(name, request.params.id);
 
-  const dog = db
-    .prepare("SELECT id, name, breed FROM dogs WHERE id = ?")
-    .get(request.params.id);
+        if (duplicateDog) {
+            return response.status(409).json({
+                error: {
+                    code: "DOG_ALREADY_EXISTS",
+                    message: "A dog with this name already exists",
+                },
+            });
+        }
+    }
 
-  return response.status(200).json(dog);
+    if (result.changes === 0) {
+        return response.status(404).json({
+            error: {
+                code: "DOG_NOT_FOUND",
+                message: "Dog not found",
+            },
+        });
+    }
+
+    const dog = db
+        .prepare("SELECT id, name, breed FROM dogs WHERE id = ?")
+        .get(request.params.id);
+
+    return response.status(200).json(dog);
 });
 
 app.delete("/dogs/:id", (request, response) => {
-  const result = db
-    .prepare("DELETE FROM dogs WHERE id = ?")
-    .run(request.params.id);
+    const result = db
+        .prepare("DELETE FROM dogs WHERE id = ?")
+        .run(request.params.id);
 
     if (result.changes === 0) {
-    return response.status(404).json({
-      error: {
-        code: "DOG_NOT_FOUND",
-        message: "Dog not found",
-      },
-    });
-  }
+        return response.status(404).json({
+            error: {
+                code: "DOG_NOT_FOUND",
+                message: "Dog not found",
+            },
+        });
+    }
 
-  return response.status(204).json({});
+    return response.status(204).json({});
 });
 
 export default app;
