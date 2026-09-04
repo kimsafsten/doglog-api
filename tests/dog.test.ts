@@ -28,44 +28,44 @@ describe("POST /dogs", () => {
 
   it("returns status 409 when dog name already exists", async () => {
     await request(app).post("/dogs").send({
-        name: "Luna",
-        breed: "Border Collie",
+      name: "Luna",
+      breed: "Border Collie",
     });
 
     const response = await request(app).post("/dogs").send({
-        name: "luna",
-        breed: "Border Collie",
+      name: "luna",
+      breed: "Border Collie",
     });
 
     expect(response.status).toBe(409);
     expect(response.body).toEqual({
-        error: {
+      error: {
         code: "DOG_ALREADY_EXISTS",
         message: "A dog with this name already exists",
-        },
+      },
     });
-});
+  });
 
 
-    it("returns status 400 when name is missing", async () => {
+  it("returns status 400 when name is missing", async () => {
     const response = await request(app).post("/dogs").send({
-        breed: "Border Collie",
+      breed: "Border Collie",
     });
 
     expect(response.status).toBe(400);
     expect(response.body).toMatchObject({
-        error: {
+      error: {
         code: "VALIDATION_ERROR",
         message: "Invalid request body",
-        },
+      },
     });
-    });
+  });
 });
 
 describe("GET /dogs", () => {
   it("returns all dogs", async () => {
     db.prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-    .run("Luna", "Border Collie");
+      .run("Luna", "Border Collie");
 
     const response = await request(app).get("/dogs");
 
@@ -103,12 +103,12 @@ describe("GET /dogs/:id", () => {
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
-        error: {
+      error: {
         code: "DOG_NOT_FOUND",
         message: "Dog not found",
-        },
+      },
     });
-    });
+  });
 });
 
 describe("PATCH /dogs/:id", () => {
@@ -133,21 +133,46 @@ describe("PATCH /dogs/:id", () => {
 
   it("returns status 400 when no fields are provided", async () => {
     const result = db
-        .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-        .run("Luna", "Border Collie");
+      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
+      .run("Luna", "Border Collie");
 
     const response = await request(app)
-        .patch(`/dogs/${result.lastInsertRowid}`)
-        .send({});
+      .patch(`/dogs/${result.lastInsertRowid}`)
+      .send({});
 
     expect(response.status).toBe(400);
     expect(response.body).toMatchObject({
-        error: {
+      error: {
         code: "VALIDATION_ERROR",
         message: "Invalid request body",
-        },
+      },
     });
+  });
+
+  it("returns status 409 when updated name already exists", async () => {
+    db.prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)").run(
+      "Luna",
+      "Border Collie",
+    );
+
+    const result = db
+      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
+      .run("Milo", "Labrador");
+
+    const response = await request(app)
+      .patch(`/dogs/${result.lastInsertRowid}`)
+      .send({
+        name: "luna",
+      });
+
+    expect(response.status).toBe(409);
+    expect(response.body).toEqual({
+      error: {
+        code: "DOG_ALREADY_EXISTS",
+        message: "A dog with this name already exists",
+      },
     });
+  });
 });
 
 describe("DELETE /dogs/:id", () => {
