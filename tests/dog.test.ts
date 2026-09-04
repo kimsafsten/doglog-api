@@ -130,6 +130,24 @@ describe("PATCH /dogs/:id", () => {
       breed: "Australian Shepherd",
     });
   });
+
+  it("returns status 400 when no fields are provided", async () => {
+    const result = db
+        .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
+        .run("Luna", "Border Collie");
+
+    const response = await request(app)
+        .patch(`/dogs/${result.lastInsertRowid}`)
+        .send({});
+
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({
+        error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid request body",
+        },
+    });
+    });
 });
 
 describe("DELETE /dogs/:id", () => {
