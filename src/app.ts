@@ -1,6 +1,6 @@
 import express from "express";
 import { db } from "./database.js";
-import { createDogSchema } from "./schemas/dog.schema.js";
+import { createDogSchema, updateDogSchema } from "./schemas/dog.schema.js";
 
 const app = express();
 
@@ -75,6 +75,20 @@ app.post("/dogs", (request, response) => {
 });
 
 app.patch("/dogs/:id", (request, response) => {
+    const validationResult = updateDogSchema.safeParse(request.body);
+
+    if (!validationResult.success) {
+    return response.status(400).json({
+        error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid request body",
+        details: validationResult.error.flatten().fieldErrors,
+        },
+    });
+    }
+
+    const { name, breed } = validationResult.data;
+
   const result = db
     .prepare(`
       UPDATE dogs
@@ -84,8 +98,8 @@ app.patch("/dogs/:id", (request, response) => {
       WHERE id = ?
     `)
     .run(
-      request.body.name ?? null,
-      request.body.breed ?? null,
+      name ?? null,
+     breed ?? null,
       request.params.id,
     );
 
