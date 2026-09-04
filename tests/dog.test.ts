@@ -131,3 +131,24 @@ describe("PATCH /dogs/:id", () => {
     });
   });
 });
+
+describe("DELETE /dogs/:id", () => {
+  it("deletes an existing dog and returns status 204", async () => {
+    const result = db
+      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
+      .run("Luna", "Border Collie");
+
+    const response = await request(app).delete(
+      `/dogs/${result.lastInsertRowid}`,
+    );
+
+    expect(response.status).toBe(204);
+    expect(response.body).toEqual({});
+
+    const deletedDog = db
+      .prepare("SELECT id FROM dogs WHERE id = ?")
+      .get(result.lastInsertRowid);
+
+    expect(deletedDog).toBeUndefined();
+  });
+});
