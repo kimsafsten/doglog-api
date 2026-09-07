@@ -4,6 +4,24 @@ import { createTrainingSessionSchema } from "../schemas/session.schema.js";
 
 export const sessionRouter = Router();
 
+sessionRouter.get("/", (_request, response) => {
+  const sessions = db.prepare(`
+    SELECT
+      id,
+      dog_id AS dogId,
+      date,
+      activity,
+      duration_minutes AS durationMinutes,
+      notes,
+      progress,
+      focus_next_time AS focusNextTime
+    FROM training_sessions
+    ORDER BY date DESC, id DESC
+  `).all();
+
+  return response.status(200).json(sessions);
+});
+
 sessionRouter.post("/", (request, response) => {
     const validationResult = createTrainingSessionSchema.safeParse(request.body);
 
