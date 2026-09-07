@@ -1,5 +1,6 @@
 import express from "express";
 import { dogRouter } from "./routes/dog.routes.js";
+import { sessionRouter } from "./routes/session.routes.js";
 
 const app = express();
 
@@ -11,5 +12,6 @@ app.get("/health", (_request, response) => {
 });
 
 app.use("/dogs", dogRouter);
+app.use("/sessions", sessionRouter);
 
 export default app;
