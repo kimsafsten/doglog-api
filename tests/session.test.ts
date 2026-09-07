@@ -35,4 +35,23 @@ describe("POST /sessions", () => {
       ...newSession,
     });
   });
+
+  it("returns status 404 when dog does not exist", async () => {
+    const response = await request(app)
+      .post("/sessions")
+      .send({
+        dogId: 999999,
+        date: "2026-09-07",
+        activity: "Agility",
+        durationMinutes: 30,
+      });
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      error: {
+        code: "DOG_NOT_FOUND",
+        message: "Dog not found",
+      },
+    });
+  });
 });
