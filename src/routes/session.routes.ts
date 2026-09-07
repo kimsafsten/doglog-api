@@ -22,6 +22,24 @@ sessionRouter.get("/", (_request, response) => {
   return response.status(200).json(sessions);
 });
 
+sessionRouter.get("/:id", (request, response) => {
+  const session = db.prepare(`
+    SELECT
+      id,
+      dog_id AS dogId,
+      date,
+      activity,
+      duration_minutes AS durationMinutes,
+      notes,
+      progress,
+      focus_next_time AS focusNextTime
+    FROM training_sessions
+    WHERE id = ?
+  `).get(request.params.id);
+
+  return response.status(200).json(session);
+});
+
 sessionRouter.post("/", (request, response) => {
     const validationResult = createTrainingSessionSchema.safeParse(request.body);
 
