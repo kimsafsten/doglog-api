@@ -19,6 +19,19 @@ sessionRouter.post("/", (request, response) => {
 
     const { dogId, date, activity, durationMinutes, notes, progress, focusNextTime } = validationResult.data;
 
+    const dog = db
+        .prepare("SELECT id FROM dogs WHERE id = ?")
+        .get(dogId);
+
+    if (!dog) {
+        return response.status(404).json({
+            error: {
+                code: "DOG_NOT_FOUND",
+                message: "Dog not found",
+            },
+        });
+    }
+
     const result = db.prepare(`
         INSERT INTO training_sessions (
         dog_id, 
@@ -30,12 +43,12 @@ sessionRouter.post("/", (request, response) => {
         )
         VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(
-        dogId, 
-        date, 
-        activity, 
-        durationMinutes, 
-        notes ?? null, 
-        progress ?? null, 
+        dogId,
+        date,
+        activity,
+        durationMinutes,
+        notes ?? null,
+        progress ?? null,
         focusNextTime ?? null,
     );
 
