@@ -194,4 +194,28 @@ describe("DELETE /dogs/:id", () => {
 
     expect(deletedDog).toBeUndefined();
   });
+
+  it("deletes the dog's training sessions", async () => {
+    const dog = db
+      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
+      .run("Luna", "Border Collie");
+
+    db.prepare(`
+    INSERT INTO training_sessions (
+      dog_id,
+      date,
+      activity,
+      duration_minutes
+    )
+    VALUES (?, ?, ?, ?)
+  `).run(dog.lastInsertRowid, "2026-09-08", "Agility", 30);
+
+    await request(app).delete(`/dogs/${dog.lastInsertRowid}`);
+
+    const sessions = db
+      .prepare("SELECT id FROM training_sessions WHERE dog_id = ?")
+      .all(dog.lastInsertRowid);
+
+    expect(sessions).toEqual([]);
+  });
 });
