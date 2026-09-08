@@ -184,3 +184,10 @@ sessionRouter.patch("/:id", (request, response) => {
 
     return response.status(200).json(updatedSession);
 });
+
+sessionRouter.delete("/:id", (request, response) => {
+  db.prepare("DELETE FROM training_sessions WHERE id = ?")
+    .run(request.params.id);
+
+  return response.status(204).send();
+});
