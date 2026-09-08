@@ -99,6 +99,54 @@ describe("GET /sessions", () => {
       },
     ]);
   });
+
+  it("filters training sessions by dogId", async () => {
+    const luna = db
+      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
+      .run("Luna", "Border Collie");
+
+    const milo = db
+      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
+      .run("Milo", "Labrador");
+
+    const lunaSession = db.prepare(`
+    INSERT INTO training_sessions (
+      dog_id,
+      date,
+      activity,
+      duration_minutes
+    )
+    VALUES (?, ?, ?, ?)
+  `).run(luna.lastInsertRowid, "2026-09-08", "Agility", 30);
+
+    db.prepare(`
+    INSERT INTO training_sessions (
+      dog_id,
+      date,
+      activity,
+      duration_minutes
+    )
+    VALUES (?, ?, ?, ?)
+  `).run(milo.lastInsertRowid, "2026-09-08", "Lydnad", 20);
+
+    const response = await request(app)
+      .get("/sessions")
+      .query({ dogId: Number(luna.lastInsertRowid) });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([
+      {
+        id: Number(lunaSession.lastInsertRowid),
+        dogId: Number(luna.lastInsertRowid),
+        date: "2026-09-08",
+        activity: "Agility",
+        durationMinutes: 30,
+        notes: null,
+        progress: null,
+        focusNextTime: null,
+      },
+    ]);
+  });
 });
 
 describe("GET /sessions/:id", () => {
