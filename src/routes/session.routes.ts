@@ -115,6 +115,18 @@ sessionRouter.post("/", (request, response) => {
 });
 
 sessionRouter.patch("/:id", (request, response) => {
+    const validationResult = updateTrainingSessionSchema.safeParse(request.body);
+
+    if (!validationResult.success) {
+        return response.status(400).json({
+            error: {
+                code: "VALIDATION_ERROR",
+                message: "Invalid request body",
+                details: validationResult.error.flatten().fieldErrors,
+            },
+        });
+    }
+
     const {
         dogId,
         date,
@@ -122,8 +134,8 @@ sessionRouter.patch("/:id", (request, response) => {
         durationMinutes,
         notes,
         progress,
-        focusNextTime
-    } = updateTrainingSessionSchema.parse(request.body);
+        focusNextTime,
+    } = validationResult.data;
 
     const result = db.prepare(`
         UPDATE training_sessions
