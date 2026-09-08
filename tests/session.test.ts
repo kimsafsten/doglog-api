@@ -191,4 +191,20 @@ describe("PATCH /sessions/:id", () => {
       focusNextTime: null,
     });
   });
+
+  it("returns status 404 when session does not exist", async () => {
+    const response = await request(app)
+      .patch("/sessions/999999")
+      .send({
+        progress: "Säkrare i slalomen",
+      });
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      error: {
+        code: "SESSION_NOT_FOUND",
+        message: "Training session not found",
+      },
+    });
+  });
 });
