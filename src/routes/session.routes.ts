@@ -4,7 +4,12 @@ import { createTrainingSessionSchema, updateTrainingSessionSchema } from "../sch
 
 export const sessionRouter = Router();
 
-sessionRouter.get("/", (_request, response) => {
+sessionRouter.get("/", (request, response) => {
+  const dogId =
+    typeof request.query.dogId === "string"
+      ? request.query.dogId
+      : null;
+
     const sessions = db.prepare(`
     SELECT
       id,
@@ -16,8 +21,9 @@ sessionRouter.get("/", (_request, response) => {
       progress,
       focus_next_time AS focusNextTime
     FROM training_sessions
+    WHERE (? IS NULL OR dog_id = ?)
     ORDER BY date DESC, id DESC
-  `).all();
+  `).all(dogId, dogId);
 
     return response.status(200).json(sessions);
 });
