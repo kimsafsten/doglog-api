@@ -222,3 +222,39 @@ describe("PATCH /sessions/:id", () => {
     });
   });
 });
+
+describe("DELETE /sessions/:id", () => {
+  it("deletes an existing training session", async () => {
+    const dog = db
+      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
+      .run("Luna", "Border Collie");
+
+    const session = db.prepare(`
+      INSERT INTO training_sessions (
+        dog_id,
+        date,
+        activity,
+        duration_minutes
+      )
+      VALUES (?, ?, ?, ?)
+    `).run(
+      dog.lastInsertRowid,
+      "2026-09-07",
+      "Agility",
+      30,
+    );
+
+    const response = await request(app).delete(
+      `/sessions/${session.lastInsertRowid}`,
+    );
+
+    expect(response.status).toBe(204);
+    expect(response.body).toEqual({});
+
+    const deletedSession = db
+      .prepare("SELECT id FROM training_sessions WHERE id = ?")
+      .get(session.lastInsertRowid);
+
+    expect(deletedSession).toBeUndefined();
+  });
+});
