@@ -125,7 +125,7 @@ sessionRouter.patch("/:id", (request, response) => {
         focusNextTime
     } = updateTrainingSessionSchema.parse(request.body);
 
-    db.prepare(`
+    const result = db.prepare(`
         UPDATE training_sessions
         SET 
             dog_id = COALESCE(?, dog_id),
@@ -146,6 +146,15 @@ sessionRouter.patch("/:id", (request, response) => {
         focusNextTime ?? null,
         request.params.id
     );
+
+    if (result.changes === 0) {
+        return response.status(404).json({
+            error: {
+                code: "SESSION_NOT_FOUND",
+                message: "Training session not found",
+            },
+        });
+    }
 
     const updatedSession = db.prepare(`
         SELECT 
