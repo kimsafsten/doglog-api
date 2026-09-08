@@ -186,8 +186,18 @@ sessionRouter.patch("/:id", (request, response) => {
 });
 
 sessionRouter.delete("/:id", (request, response) => {
-  db.prepare("DELETE FROM training_sessions WHERE id = ?")
+  const result = db
+    .prepare("DELETE FROM training_sessions WHERE id = ?")
     .run(request.params.id);
+
+  if (result.changes === 0) {
+    return response.status(404).json({
+      error: {
+        code: "SESSION_NOT_FOUND",
+        message: "Training session not found",
+      },
+    });
+  }
 
   return response.status(204).send();
 });
