@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../database.js";
-import { createTrainingSessionSchema } from "../schemas/session.schema.js";
+import { createTrainingSessionSchema, updateTrainingSessionSchema } from "../schemas/session.schema.js";
 
 export const sessionRouter = Router();
 
@@ -112,4 +112,54 @@ sessionRouter.post("/", (request, response) => {
     `).get(result.lastInsertRowid);
 
     return response.status(201).json(session);
+});
+
+sessionRouter.patch("/:id", (request, response) => {
+    const {
+        dogId,
+        date,
+        activity,
+        durationMinutes,
+        notes,
+        progress,
+        focusNextTime
+    } = updateTrainingSessionSchema.parse(request.body);
+
+    db.prepare(`
+        UPDATE training_sessions
+        SET 
+            dog_id = COALESCE(?, dog_id),
+            date = COALESCE(?, date),
+            activity = COALESCE(?, activity),
+            duration_minutes = COALESCE(?, duration_minutes),
+            notes = COALESCE(?, notes),
+            progress = COALESCE(?, progress),
+            focus_next_time = COALESCE(?, focus_next_time)
+        WHERE id = ?
+    `).run(
+        dogId ?? null,
+        date ?? null,
+        activity ?? null,
+        durationMinutes ?? null,
+        notes ?? null,
+        progress ?? null,
+        focusNextTime ?? null,
+        request.params.id
+    );
+
+    const updatedSession = db.prepare(`
+        SELECT 
+            id,
+            dog_id AS dogId,
+            date,
+            activity,
+            duration_minutes AS durationMinutes,
+            notes,
+            progress,
+            focus_next_time AS focusNextTime
+        FROM training_sessions
+        WHERE id = ?
+    `).get(request.params.id);
+
+    return response.status(200).json(updatedSession);
 });
