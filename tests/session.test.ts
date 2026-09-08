@@ -140,14 +140,14 @@ describe("GET /sessions/:id", () => {
   });
 
   it("returns status 404 when session does not exist", async () => {
-  const response = await request(app).get("/sessions/999999");
+    const response = await request(app).get("/sessions/999999");
 
-  expect(response.status).toBe(404);
-  expect(response.body).toEqual({
-    error: {
-      code: "SESSION_NOT_FOUND",
-      message: "Training session not found",
-    },
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      error: {
+        code: "SESSION_NOT_FOUND",
+        message: "Training session not found",
+      },
+    });
   });
-});
 });

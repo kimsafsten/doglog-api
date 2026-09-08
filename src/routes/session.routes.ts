@@ -5,7 +5,7 @@ import { createTrainingSessionSchema } from "../schemas/session.schema.js";
 export const sessionRouter = Router();
 
 sessionRouter.get("/", (_request, response) => {
-  const sessions = db.prepare(`
+    const sessions = db.prepare(`
     SELECT
       id,
       dog_id AS dogId,
@@ -19,11 +19,11 @@ sessionRouter.get("/", (_request, response) => {
     ORDER BY date DESC, id DESC
   `).all();
 
-  return response.status(200).json(sessions);
+    return response.status(200).json(sessions);
 });
 
 sessionRouter.get("/:id", (request, response) => {
-  const session = db.prepare(`
+    const session = db.prepare(`
     SELECT
       id,
       dog_id AS dogId,
@@ -37,7 +37,16 @@ sessionRouter.get("/:id", (request, response) => {
     WHERE id = ?
   `).get(request.params.id);
 
-  return response.status(200).json(session);
+    if (!session) {
+        return response.status(404).json({
+            error: {
+                code: "SESSION_NOT_FOUND",
+                message: "Training session not found",
+            },
+        });
+    }
+
+    return response.status(200).json(session);
 });
 
 sessionRouter.post("/", (request, response) => {
