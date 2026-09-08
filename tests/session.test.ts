@@ -207,4 +207,18 @@ describe("PATCH /sessions/:id", () => {
       },
     });
   });
+
+  it("returns status 400 when no fields are provided", async () => {
+    const response = await request(app)
+      .patch("/sessions/999999")
+      .send({});
+
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid request body",
+      },
+    });
+  });
 });
