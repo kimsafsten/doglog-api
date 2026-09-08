@@ -151,3 +151,44 @@ describe("GET /sessions/:id", () => {
     });
   });
 });
+
+describe("PATCH /sessions/:id", () => {
+  it("partially updates an existing training session", async () => {
+    const dog = db
+      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
+      .run("Luna", "Border Collie");
+
+    const session = db.prepare(`
+      INSERT INTO training_sessions (
+        dog_id,
+        date,
+        activity,
+        duration_minutes
+      )
+      VALUES (?, ?, ?, ?)
+    `).run(
+      dog.lastInsertRowid,
+      "2026-09-07",
+      "Agility",
+      30,
+    );
+
+    const response = await request(app)
+      .patch(`/sessions/${session.lastInsertRowid}`)
+      .send({
+        progress: "Säkrare i slalomen",
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      id: Number(session.lastInsertRowid),
+      dogId: Number(dog.lastInsertRowid),
+      date: "2026-09-07",
+      activity: "Agility",
+      durationMinutes: 30,
+      notes: null,
+      progress: "Säkrare i slalomen",
+      focusNextTime: null,
+    });
+  });
+});
