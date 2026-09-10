@@ -15,6 +15,12 @@ const createDog = (name = "Luna", breed = "Border Collie") => {
     .run(name, breed);
 };
 
+const createSession = (dogId: number, date: string, activity: string, durationMinutes: number) => {
+  return db
+    .prepare(`INSERT INTO training_sessions (dog_id, date, activity, duration_minutes) VALUES (?, ?, ?, ?)`)
+    .run(dogId, date, activity, durationMinutes);
+};
+
 describe("POST /sessions", () => {
   it("creates a training session and returns status 201", async () => {
     const dog = createDog();
@@ -106,25 +112,18 @@ describe("GET /sessions", () => {
     const luna = createDog();
     const milo = createDog("Milo", "Labrador");
 
-    const lunaSession = db.prepare(`
-    INSERT INTO training_sessions (
-      dog_id,
-      date,
-      activity,
-      duration_minutes
-    )
-    VALUES (?, ?, ?, ?)
-  `).run(luna.lastInsertRowid, "2026-09-08", "Agility", 30);
+    const lunaSession = createSession(
+      Number(luna.lastInsertRowid), 
+      "2026-09-08", 
+      "Agility", 
+      30);
 
-    db.prepare(`
-    INSERT INTO training_sessions (
-      dog_id,
-      date,
-      activity,
-      duration_minutes
-    )
-    VALUES (?, ?, ?, ?)
-  `).run(milo.lastInsertRowid, "2026-09-08", "Lydnad", 20);
+    createSession(
+      Number(milo.lastInsertRowid),
+      "2026-09-08",
+      "Lydnad",
+      20
+    );
 
     const response = await request(app)
       .get("/sessions")
@@ -148,25 +147,18 @@ describe("GET /sessions", () => {
   it("filters training sessions by activity", async () => {
     const dog = createDog();
 
-    const agilitySession = db.prepare(`
-    INSERT INTO training_sessions (
-      dog_id,
-      date,
-      activity,
-      duration_minutes
-    )
-    VALUES (?, ?, ?, ?)
-  `).run(dog.lastInsertRowid, "2026-09-08", "Agility", 30);
+    const agilitySession = createSession(
+      Number(dog.lastInsertRowid), 
+      "2026-09-08", 
+      "Agility", 
+      30);
 
-    const obedienceSession = db.prepare(`
-    INSERT INTO training_sessions (
-      dog_id,
-      date,
-      activity,
-      duration_minutes
-    )
-    VALUES (?, ?, ?, ?)
-  `).run(dog.lastInsertRowid, "2026-09-08", "Obedience", 20);
+    const obedienceSession = createSession(
+      Number(dog.lastInsertRowid),
+      "2026-09-09",
+      "Obedience",
+      20
+    );
 
     const response = await request(app)
       .get("/sessions")
@@ -190,25 +182,18 @@ describe("GET /sessions", () => {
   it("filters training sessions by date", async () => {
     const dog = createDog();
 
-    const session1 = db.prepare(`
-    INSERT INTO training_sessions (
-      dog_id,
-      date,
-      activity,
-      duration_minutes
-    )
-    VALUES (?, ?, ?, ?)
-  `).run(dog.lastInsertRowid, "2026-09-08", "Agility", 30);
+    const session1 = createSession(
+      Number(dog.lastInsertRowid), 
+      "2026-09-08", 
+      "Agility", 
+      30);
 
-    const session2 = db.prepare(`
-    INSERT INTO training_sessions (
-      dog_id,
-      date,
-      activity,
-      duration_minutes
-    )
-    VALUES (?, ?, ?, ?)
-  `).run(dog.lastInsertRowid, "2026-09-09", "Obedience", 20);
+    const session2 = createSession(
+      Number(dog.lastInsertRowid),
+      "2026-09-09",
+      "Obedience",
+      20
+    );
 
     const response = await request(app)
       .get("/sessions")
@@ -232,35 +217,26 @@ describe("GET /sessions", () => {
   it("limits the number of returned training sessions", async () => {
     const dog = createDog();
 
-    const session1 = db.prepare(`
-    INSERT INTO training_sessions (
-      dog_id,
-      date,
-      activity,
-      duration_minutes
-    )
-    VALUES (?, ?, ?, ?)
-  `).run(dog.lastInsertRowid, "2026-09-08", "Agility", 30);
+    const session1 = createSession(
+      Number(dog.lastInsertRowid), 
+      "2026-09-08", 
+      "Agility", 
+      30
+    );
 
-    const session2 = db.prepare(`
-    INSERT INTO training_sessions (
-      dog_id,
-      date,
-      activity,
-      duration_minutes
-    )
-    VALUES (?, ?, ?, ?)
-  `).run(dog.lastInsertRowid, "2026-09-09", "Obedience", 20);
+    const session2 = createSession(
+      Number(dog.lastInsertRowid),
+      "2026-09-09",
+      "Obedience",
+      20
+    );
 
-    const session3 = db.prepare(`
-    INSERT INTO training_sessions (
-      dog_id,
-      date,
-      activity,
-      duration_minutes
-    )
-    VALUES (?, ?, ?, ?)
-  `).run(dog.lastInsertRowid, "2026-09-10", "Rally", 25);
+    const session3 = createSession(
+      Number(dog.lastInsertRowid),
+      "2026-09-10",
+      "Rally",
+      25
+    );
 
     const response = await request(app)
       .get("/sessions")
@@ -294,35 +270,26 @@ describe("GET /sessions", () => {
   it("paginates the returned training sessions", async () => {
     const dog = createDog();
 
-    const session1 = db.prepare(`
-    INSERT INTO training_sessions (
-      dog_id,
-      date,
-      activity,
-      duration_minutes
-    )
-    VALUES (?, ?, ?, ?)
-  `).run(dog.lastInsertRowid, "2026-09-08", "Agility", 30);
+    const session1 = createSession(
+      Number(dog.lastInsertRowid), 
+      "2026-09-08", 
+      "Agility", 
+      30
+    );
 
-    const session2 = db.prepare(`
-    INSERT INTO training_sessions (
-      dog_id,
-      date,
-      activity,
-      duration_minutes
-    )
-    VALUES (?, ?, ?, ?)
-  `).run(dog.lastInsertRowid, "2026-09-09", "Obedience", 20);
+    const session2 = createSession(
+      Number(dog.lastInsertRowid),
+      "2026-09-09",
+      "Obedience",
+      20
+    );
 
-    const session3 = db.prepare(`
-    INSERT INTO training_sessions (
-      dog_id,
-      date,
-      activity,
-      duration_minutes
-    )
-    VALUES (?, ?, ?, ?)
-  `).run(dog.lastInsertRowid, "2026-09-10", "Rally", 25);
+    const session3 = createSession(
+      Number(dog.lastInsertRowid),
+      "2026-09-10",
+      "Rally",
+      25
+    );
 
     const response = await request(app)
       .get("/sessions")
@@ -348,19 +315,11 @@ describe("GET /sessions/:id", () => {
   it("returns one training session by id", async () => {
     const dog = createDog();
 
-    const session = db.prepare(`
-      INSERT INTO training_sessions (
-        dog_id,
-        date,
-        activity,
-        duration_minutes
-      )
-      VALUES (?, ?, ?, ?)
-    `).run(
-      dog.lastInsertRowid,
-      "2026-09-07",
-      "Agility",
-      30,
+    const session = createSession(
+      Number(dog.lastInsertRowid), 
+      "2026-09-07", 
+      "Agility", 
+      30
     );
 
     const response = await request(app).get(
@@ -397,21 +356,13 @@ describe("PATCH /sessions/:id", () => {
   it("partially updates an existing training session", async () => {
     const dog = createDog();
 
-    const session = db.prepare(`
-      INSERT INTO training_sessions (
-        dog_id,
-        date,
-        activity,
-        duration_minutes
-      )
-      VALUES (?, ?, ?, ?)
-    `).run(
-      dog.lastInsertRowid,
+    const session = createSession(
+      Number(dog.lastInsertRowid),
       "2026-09-07",
       "Agility",
-      30,
+      30
     );
-
+       
     const response = await request(app)
       .patch(`/sessions/${session.lastInsertRowid}`)
       .send({
@@ -466,19 +417,11 @@ describe("DELETE /sessions/:id", () => {
   it("deletes an existing training session", async () => {
     const dog = createDog();
 
-    const session = db.prepare(`
-      INSERT INTO training_sessions (
-        dog_id,
-        date,
-        activity,
-        duration_minutes
-      )
-      VALUES (?, ?, ?, ?)
-    `).run(
-      dog.lastInsertRowid,
+    const session = createSession(
+      Number(dog.lastInsertRowid),
       "2026-09-07",
       "Agility",
-      30,
+      30
     );
 
     const response = await request(app).delete(
@@ -510,15 +453,12 @@ describe("DELETE /sessions/:id", () => {
   it("does not delete the dog when a session is deleted", async () => {
     const dog = createDog();
 
-    const session = db.prepare(`
-    INSERT INTO training_sessions (
-      dog_id,
-      date,
-      activity,
-      duration_minutes
-    )
-    VALUES (?, ?, ?, ?)
-  `).run(dog.lastInsertRowid, "2026-09-08", "Agility", 30);
+    const session = createSession(
+      Number(dog.lastInsertRowid),
+      "2026-09-08",
+      "Agility",
+      30
+    );
 
     await request(app).delete(`/sessions/${session.lastInsertRowid}`);
 
