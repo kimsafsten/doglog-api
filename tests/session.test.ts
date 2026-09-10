@@ -356,6 +356,21 @@ describe("GET /sessions", () => {
     expect(response.status).toBe(200);
     expect(response.body.length).toBe(10);
   });
+
+  it("returns status 400 when date is invalid", async () => {
+    const response = await request(app)
+      .get("/sessions")
+      .query({ date: "invalid-date" });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid query parameters",
+      },
+    });
+  });
+ 
 });
 
 describe("GET /sessions/:id", () => {
