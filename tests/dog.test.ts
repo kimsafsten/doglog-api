@@ -60,6 +60,36 @@ describe("POST /dogs", () => {
       },
     });
   });
+
+  it("returns status 400 when name is empty", async () => {
+    const response = await request(app).post("/dogs").send({
+      name: "",
+      breed: "Border Collie",
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid request body",
+      },
+    });
+  });
+
+  it("returns status 400 when name is only whitespace", async () => {
+    const response = await request(app).post("/dogs").send({
+      name: "   ",
+      breed: "Border Collie",
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid request body",
+      },
+    });
+  });
 });
 
 describe("GET /dogs", () => {
@@ -170,6 +200,26 @@ describe("PATCH /dogs/:id", () => {
       error: {
         code: "DOG_ALREADY_EXISTS",
         message: "A dog with this name already exists",
+      },
+    });
+  });
+
+  it("returns status 400 when breed is empty", async () => {
+    const result = db
+      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
+      .run("Luna", "Border Collie");
+
+    const response = await request(app)
+      .patch(`/dogs/${result.lastInsertRowid}`)
+      .send({
+        breed: "",
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid request body",
       },
     });
   });
