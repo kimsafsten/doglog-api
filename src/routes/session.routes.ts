@@ -1,4 +1,4 @@
-import { type Response, Router } from "express";
+import { type Request, type Response, Router } from "express";
 import { db } from "../database.js";
 import { createTrainingSessionSchema, updateTrainingSessionSchema } from "../schemas/session.schema.js";
 
@@ -24,53 +24,77 @@ const invalidQueryParamResponse = (response: Response) => {
             message: "Invalid query parameters",
         },
     });
-}
+};
 
-
-sessionRouter.get("/", (request, response) => {
+const getSessionFilters = (
+    query: Request["query"],
+    response: Response,
+) => {
     const dogId =
-        typeof request.query.dogId === "string"
-            ? parseInt(request.query.dogId, 10)
+        typeof query.dogId === "string"
+            ? parseInt(query.dogId, 10)
             : null;
 
     if (dogId !== null && (isNaN(dogId) || dogId <= 0)) {
-        return invalidQueryParamResponse(response);
+        invalidQueryParamResponse(response);
+        return null;
     }
 
     const activity =
-        typeof request.query.activity === "string"
-            ? request.query.activity
+        typeof query.activity === "string"
+            ? query.activity
             : null;
 
     if (activity !== null && activity.trim() === "") {
-        return invalidQueryParamResponse(response);
+        invalidQueryParamResponse(response);
+        return null;
     }
 
     const date =
-        typeof request.query.date === "string"
-            ? request.query.date
+        typeof query.date === "string"
+            ? query.date
             : null;
 
     if (date !== null && !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-        return invalidQueryParamResponse(response);
+        invalidQueryParamResponse(response);
+        return null;
     }
 
     const limit =
-        typeof request.query.limit === "string"
-            ? parseInt(request.query.limit, 10)
+        typeof query.limit === "string"
+            ? parseInt(query.limit, 10)
             : 10;
 
     if (isNaN(limit) || limit <= 0) {
-        return invalidQueryParamResponse(response);
+        invalidQueryParamResponse(response);
+        return null;
     }
 
     const page =
-        typeof request.query.page === "string"
-            ? parseInt(request.query.page, 10)
+        typeof query.page === "string"
+            ? parseInt(query.page, 10)
             : null;
 
     if (page !== null && (isNaN(page) || page <= 0)) {
-        return invalidQueryParamResponse(response);
+        invalidQueryParamResponse(response);
+        return null;
+    }
+
+    return {
+        dogId,
+        activity,
+        date,
+        limit,
+        page,
+    };
+};
+
+
+sessionRouter.get("/", (request, response) => {
+    const filters = getSessionFilters(request.query, response);
+
+    if (!filters) {
+        return;
     }
 
     let query = `${sessionSelect}
@@ -81,21 +105,21 @@ sessionRouter.get("/", (request, response) => {
         `;
 
     const params: Array<string | number | null> = [
-        dogId,
-        dogId,
-        activity,
-        activity,
-        date,
-        date,
+        filters.dogId,
+        filters.dogId,
+        filters.activity,
+        filters.activity,
+        filters.date,
+        filters.date,
     ];
 
     query += `
     LIMIT ?
     `;
-    params.push(limit);
+    params.push(filters.limit);
 
-    if (page !== null) {
-        const offset = (page - 1) * limit;
+    if (filters.page !== null) {
+        const offset = (filters.page - 1) * filters.limit;
         query += `
         OFFSET ?
         `;

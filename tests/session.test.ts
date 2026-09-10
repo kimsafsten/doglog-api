@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import app from "../src/app.js";
 import { db } from "../src/database.js";
+import { type Request, type Response, Router } from "express";
 
 beforeEach(() => {
   db.prepare("DELETE FROM training_sessions").run();
