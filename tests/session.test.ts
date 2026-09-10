@@ -338,6 +338,24 @@ describe("GET /sessions", () => {
       },
     });
   });
+
+  it("returns 10 sessions by default when no limit is provided", async () => {
+    const dog = createDog();
+
+    for (let i = 0; i < 15; i++) {
+      createSession(
+        Number(dog.lastInsertRowid),
+        `2026-09-${(i + 1).toString().padStart(2, "0")}`,
+        "Agility",
+        30
+      );
+    }
+
+    const response = await request(app).get("/sessions");
+
+    expect(response.status).toBe(200);
+    expect(response.body.length).toBe(10);
+  });
 });
 
 describe("GET /sessions/:id", () => {
