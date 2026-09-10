@@ -21,18 +21,22 @@ const createSession = (dogId: number, date: string, activity: string, durationMi
     .run(dogId, date, activity, durationMinutes);
 };
 
+const buildFullSessionData = () => ({
+  date: "2026-09-07",
+  activity: "Agility",
+  durationMinutes: 30,  
+  notes: "Bra energi",
+  progress: "Säkrare i slalomen",
+  focusNextTime: "Träna lugna starter",
+});
+
 describe("POST /sessions", () => {
   it("creates a training session and returns status 201", async () => {
     const dog = createDog();
 
     const newSession = {
       dogId: Number(dog.lastInsertRowid),
-      date: "2026-09-07",
-      activity: "Agility",
-      durationMinutes: 30,
-      notes: "Bra energi",
-      progress: "Säkrare i slalomen",
-      focusNextTime: "Träna lugna starter",
+      ...buildFullSessionData(),
     };
 
     const response = await request(app)
@@ -70,6 +74,8 @@ describe("GET /sessions", () => {
   it("returns all training sessions", async () => {
     const dog = createDog();
 
+    const fullSession = buildFullSessionData();
+
     const session = db.prepare(`
       INSERT INTO training_sessions (
         dog_id,
@@ -83,12 +89,12 @@ describe("GET /sessions", () => {
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(
       dog.lastInsertRowid,
-      "2026-09-07",
-      "Agility",
-      30,
-      "Bra energi",
-      "Säkrare i slalomen",
-      "Träna lugna starter",
+      fullSession.date,
+      fullSession.activity,
+      fullSession.durationMinutes,
+      fullSession.notes,
+      fullSession.progress,
+      fullSession.focusNextTime
     );
 
     const response = await request(app).get("/sessions");
@@ -98,12 +104,7 @@ describe("GET /sessions", () => {
       {
         id: Number(session.lastInsertRowid),
         dogId: Number(dog.lastInsertRowid),
-        date: "2026-09-07",
-        activity: "Agility",
-        durationMinutes: 30,
-        notes: "Bra energi",
-        progress: "Säkrare i slalomen",
-        focusNextTime: "Träna lugna starter",
+        ...fullSession,
       },
     ]);
   });
