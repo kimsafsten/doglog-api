@@ -310,6 +310,20 @@ describe("GET /sessions", () => {
       }
     ]);
   });
+
+  it("returns status 400 when limit is invalid", async () => {
+    const response = await request(app)
+      .get("/sessions")
+      .query({ limit: "invalid" });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid request body",
+      },
+    });
+  });
 });
 
 describe("GET /sessions/:id", () => {
