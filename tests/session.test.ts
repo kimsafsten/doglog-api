@@ -370,6 +370,20 @@ describe("GET /sessions", () => {
       },
     });
   });
+
+  it("returns status 400 when dogId is invalid", async () => {
+    const response = await request(app)
+      .get("/sessions")
+      .query({ dogId: "invalid" });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid query parameters",
+      },
+    });
+  });
  
 });
 
