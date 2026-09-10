@@ -24,7 +24,7 @@ const createSession = (dogId: number, date: string, activity: string, durationMi
 const buildFullSessionData = () => ({
   date: "2026-09-07",
   activity: "Agility",
-  durationMinutes: 30,  
+  durationMinutes: 30,
   notes: "Bra energi",
   progress: "Säkrare i slalomen",
   focusNextTime: "Träna lugna starter",
@@ -114,9 +114,9 @@ describe("GET /sessions", () => {
     const milo = createDog("Milo", "Labrador");
 
     const lunaSession = createSession(
-      Number(luna.lastInsertRowid), 
-      "2026-09-08", 
-      "Agility", 
+      Number(luna.lastInsertRowid),
+      "2026-09-08",
+      "Agility",
       30);
 
     createSession(
@@ -149,9 +149,9 @@ describe("GET /sessions", () => {
     const dog = createDog();
 
     const agilitySession = createSession(
-      Number(dog.lastInsertRowid), 
-      "2026-09-08", 
-      "Agility", 
+      Number(dog.lastInsertRowid),
+      "2026-09-08",
+      "Agility",
       30);
 
     const obedienceSession = createSession(
@@ -184,9 +184,9 @@ describe("GET /sessions", () => {
     const dog = createDog();
 
     const session1 = createSession(
-      Number(dog.lastInsertRowid), 
-      "2026-09-08", 
-      "Agility", 
+      Number(dog.lastInsertRowid),
+      "2026-09-08",
+      "Agility",
       30);
 
     const session2 = createSession(
@@ -219,9 +219,9 @@ describe("GET /sessions", () => {
     const dog = createDog();
 
     const session1 = createSession(
-      Number(dog.lastInsertRowid), 
-      "2026-09-08", 
-      "Agility", 
+      Number(dog.lastInsertRowid),
+      "2026-09-08",
+      "Agility",
       30
     );
 
@@ -272,9 +272,9 @@ describe("GET /sessions", () => {
     const dog = createDog();
 
     const session1 = createSession(
-      Number(dog.lastInsertRowid), 
-      "2026-09-08", 
-      "Agility", 
+      Number(dog.lastInsertRowid),
+      "2026-09-08",
+      "Agility",
       30
     );
 
@@ -384,7 +384,21 @@ describe("GET /sessions", () => {
       },
     });
   });
- 
+
+  it("returns status when activity is empty", async () => {
+    const response = await request(app)
+      .get("/sessions")
+      .query({ activity: "" });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid query parameters",
+      },
+    });
+  });
+
 });
 
 describe("GET /sessions/:id", () => {
@@ -392,9 +406,9 @@ describe("GET /sessions/:id", () => {
     const dog = createDog();
 
     const session = createSession(
-      Number(dog.lastInsertRowid), 
-      "2026-09-07", 
-      "Agility", 
+      Number(dog.lastInsertRowid),
+      "2026-09-07",
+      "Agility",
       30
     );
 
@@ -438,7 +452,7 @@ describe("PATCH /sessions/:id", () => {
       "Agility",
       30
     );
-       
+
     const response = await request(app)
       .patch(`/sessions/${session.lastInsertRowid}`)
       .send({
