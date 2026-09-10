@@ -39,6 +39,11 @@ sessionRouter.get("/", (request, response) => {
             ? parseInt(request.query.limit, 10)
             : null;
 
+    const page =
+        typeof request.query.page === "string"
+            ? parseInt(request.query.page, 10)
+            : null;
+
     let query = `${sessionSelect}
         WHERE (? IS NULL OR dog_id = ?)
         AND (? IS NULL OR activity = ?)
@@ -60,6 +65,14 @@ sessionRouter.get("/", (request, response) => {
         LIMIT ?
         `;
         params.push(limit);
+    }
+
+    if (page !== null && limit !== null) {
+        const offset = (page - 1) * limit;
+        query += `
+        OFFSET ?
+        `;
+        params.push(offset);
     }
 
     const sessions = db.prepare(query).all(...params);
