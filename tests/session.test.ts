@@ -9,11 +9,15 @@ beforeEach(() => {
   db.prepare("DELETE FROM dogs").run();
 });
 
+const createDog = (name = "Luna", breed = "Border Collie") => {
+  return db
+    .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
+    .run(name, breed);
+};
+
 describe("POST /sessions", () => {
   it("creates a training session and returns status 201", async () => {
-    const dog = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
+    const dog = createDog();
 
     const newSession = {
       dogId: Number(dog.lastInsertRowid),
@@ -58,9 +62,7 @@ describe("POST /sessions", () => {
 
 describe("GET /sessions", () => {
   it("returns all training sessions", async () => {
-    const dog = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
+    const dog = createDog();
 
     const session = db.prepare(`
       INSERT INTO training_sessions (
@@ -101,13 +103,8 @@ describe("GET /sessions", () => {
   });
 
   it("filters training sessions by dogId", async () => {
-    const luna = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
-
-    const milo = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Milo", "Labrador");
+    const luna = createDog();
+    const milo = createDog("Milo", "Labrador");
 
     const lunaSession = db.prepare(`
     INSERT INTO training_sessions (
@@ -149,9 +146,7 @@ describe("GET /sessions", () => {
   });
 
   it("filters training sessions by activity", async () => {
-    const dog = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
+    const dog = createDog();
 
     const agilitySession = db.prepare(`
     INSERT INTO training_sessions (
@@ -193,9 +188,7 @@ describe("GET /sessions", () => {
   });
 
   it("filters training sessions by date", async () => {
-    const dog = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
+    const dog = createDog();
 
     const session1 = db.prepare(`
     INSERT INTO training_sessions (
@@ -237,9 +230,7 @@ describe("GET /sessions", () => {
   });
 
 it("limits the number of returned training sessions", async () => {
-    const dog = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
+    const dog = createDog();
 
     const session1 = db.prepare(`
     INSERT INTO training_sessions (
@@ -301,9 +292,7 @@ it("limits the number of returned training sessions", async () => {
   });
 
   it("paginates the returned training sessions", async () => {
-    const dog = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
+    const dog = createDog();
 
     const session1 = db.prepare(`
     INSERT INTO training_sessions (
@@ -357,9 +346,7 @@ it("limits the number of returned training sessions", async () => {
 
 describe("GET /sessions/:id", () => {
   it("returns one training session by id", async () => {
-    const dog = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
+    const dog = createDog();
 
     const session = db.prepare(`
       INSERT INTO training_sessions (
@@ -408,9 +395,7 @@ describe("GET /sessions/:id", () => {
 
 describe("PATCH /sessions/:id", () => {
   it("partially updates an existing training session", async () => {
-    const dog = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
+    const dog = createDog();
 
     const session = db.prepare(`
       INSERT INTO training_sessions (
@@ -479,9 +464,7 @@ describe("PATCH /sessions/:id", () => {
 
 describe("DELETE /sessions/:id", () => {
   it("deletes an existing training session", async () => {
-    const dog = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
+    const dog = createDog();
 
     const session = db.prepare(`
       INSERT INTO training_sessions (
@@ -525,9 +508,7 @@ describe("DELETE /sessions/:id", () => {
   });
 
   it("does not delete the dog when a session is deleted", async () => {
-    const dog = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
+    const dog = createDog();
 
     const session = db.prepare(`
     INSERT INTO training_sessions (
