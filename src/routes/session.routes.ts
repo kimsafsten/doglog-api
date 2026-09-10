@@ -24,22 +24,45 @@ sessionRouter.get("/", (request, response) => {
             ? request.query.dogId
             : null;
 
-    const activity = 
-    typeof request.query.activity === "string" 
-    ? request.query.activity 
-    : null;
+    const activity =
+        typeof request.query.activity === "string"
+            ? request.query.activity
+            : null;
 
-    const date = 
-    typeof request.query.date === "string" 
-    ? request.query.date 
-    : null;
+    const date =
+        typeof request.query.date === "string"
+            ? request.query.date
+            : null;
 
-    const sessions = db.prepare(`${sessionSelect}
-    WHERE (? IS NULL OR dog_id = ?)
-    AND (? IS NULL OR activity = ?)
-    AND (? IS NULL OR date = ?)
-    ORDER BY date DESC, id DESC
-  `).all(dogId, dogId, activity, activity, date, date);
+    const limit =
+        typeof request.query.limit === "string"
+            ? parseInt(request.query.limit, 10)
+            : null;
+
+    let query = `${sessionSelect}
+        WHERE (? IS NULL OR dog_id = ?)
+        AND (? IS NULL OR activity = ?)
+        AND (? IS NULL OR date = ?)
+        ORDER BY date DESC, id DESC
+        `;
+
+    const params: Array<string | number | null> = [
+        dogId,
+        dogId,
+        activity,
+        activity,
+        date,
+        date,
+    ];
+
+    if (limit !== null) {
+        query += `
+        LIMIT ?
+        `;
+        params.push(limit);
+    }
+
+    const sessions = db.prepare(query).all(...params);
 
     return response.status(200).json(sessions);
 });
