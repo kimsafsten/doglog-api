@@ -68,6 +68,27 @@ describe("POST /sessions", () => {
       },
     });
   });
+
+  it("returns status 400 when activity is empty", async () => {
+    const dog = createDog();
+
+    const response = await request(app)
+      .post("/sessions")
+      .send({
+        dogId: Number(dog.lastInsertRowid),
+        date: "2026-09-07",
+        activity: "",
+        durationMinutes: 30,
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid request body",
+      },
+    });
+  });
 });
 
 describe("GET /sessions", () => {
@@ -170,6 +191,53 @@ describe("GET /sessions", () => {
       {
         id: Number(agilitySession.lastInsertRowid),
         dogId: Number(dog.lastInsertRowid),
+        date: "2026-09-08",
+        activity: "Agility",
+        durationMinutes: 30,
+        notes: null,
+        progress: null,
+        focusNextTime: null,
+      },
+    ]);
+  });
+
+  it("combines dogId and activity filters", async () => {
+    const luna = createDog();
+    const milo = createDog("Milo", "Labrador");
+
+    const lunaAgilitySession = createSession(
+      Number(luna.lastInsertRowid),
+      "2026-09-08",
+      "Agility",
+      30,
+    );
+
+    createSession(
+      Number(luna.lastInsertRowid),
+      "2026-09-09",
+      "Obedience",
+      20,
+    );
+
+    createSession(
+      Number(milo.lastInsertRowid),
+      "2026-09-10",
+      "Agility",
+      25,
+    );
+
+    const response = await request(app)
+      .get("/sessions")
+      .query({
+        dogId: Number(luna.lastInsertRowid),
+        activity: "Agility",
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([
+      {
+        id: Number(lunaAgilitySession.lastInsertRowid),
+        dogId: Number(luna.lastInsertRowid),
         date: "2026-09-08",
         activity: "Agility",
         durationMinutes: 30,
@@ -309,6 +377,26 @@ describe("GET /sessions", () => {
         focusNextTime: null,
       }
     ]);
+  });
+
+  it("returns an empty array when page is outside the result set", async () => {
+    const dog = createDog();
+
+    for (let i = 0; i < 3; i++) {
+      createSession(
+        Number(dog.lastInsertRowid),
+        `2026-09-${(i + 8).toString().padStart(2, "0")}`,
+        "Agility",
+        30,
+      );
+    }
+
+    const response = await request(app)
+      .get("/sessions")
+      .query({ page: 5, limit: 2 });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
   });
 
   it("returns status 400 when limit is invalid", async () => {
@@ -505,6 +593,31 @@ describe("PATCH /sessions/:id", () => {
     const response = await request(app)
       .patch("/sessions/999999")
       .send({});
+
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid request body",
+      },
+    });
+  });
+
+  it("returns status 400 when durationMinutes is invalid", async () => {
+    const dog = createDog();
+
+    const session = createSession(
+      Number(dog.lastInsertRowid),
+      "2026-09-07",
+      "Agility",
+      30,
+    );
+
+    const response = await request(app)
+      .patch(`/sessions/${session.lastInsertRowid}`)
+      .send({
+        durationMinutes: 0,
+      });
 
     expect(response.status).toBe(400);
     expect(response.body).toMatchObject({
