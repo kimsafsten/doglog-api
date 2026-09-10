@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { type Response, Router } from "express";
 import { db } from "../database.js";
 import { createTrainingSessionSchema, updateTrainingSessionSchema } from "../schemas/session.schema.js";
 
@@ -17,6 +17,15 @@ const sessionSelect = `
   FROM training_sessions
 `;
 
+const invalidQueryParamResponse = (response: Response) => {
+    return response.status(400).json({
+        error: {
+            code: "VALIDATION_ERROR",
+            message: "Invalid query parameters",
+        },
+    });
+}
+
 
 sessionRouter.get("/", (request, response) => {
     const dogId =
@@ -25,12 +34,7 @@ sessionRouter.get("/", (request, response) => {
             : null;
 
     if (dogId !== null && (isNaN(dogId) || dogId <= 0)) {
-        return response.status(400).json({
-            error: {
-                code: "VALIDATION_ERROR",
-                message: "Invalid query parameters",
-            },
-        });
+        return invalidQueryParamResponse(response);
     }
 
     const activity =
@@ -39,12 +43,7 @@ sessionRouter.get("/", (request, response) => {
             : null;
 
     if (activity !== null && activity.trim() === "") {
-        return response.status(400).json({
-            error: {
-                code: "VALIDATION_ERROR",
-                message: "Invalid query parameters",
-            },
-        });
+        return invalidQueryParamResponse(response);
     }
 
     const date =
@@ -53,12 +52,7 @@ sessionRouter.get("/", (request, response) => {
             : null;
 
     if (date !== null && !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-        return response.status(400).json({
-            error: {
-                code: "VALIDATION_ERROR",
-                message: "Invalid query parameters",
-            },
-        });
+        return invalidQueryParamResponse(response);
     }
 
     const limit =
@@ -67,12 +61,7 @@ sessionRouter.get("/", (request, response) => {
             : 10;
 
     if (isNaN(limit) || limit <= 0) {
-        return response.status(400).json({
-            error: {
-                code: "VALIDATION_ERROR",
-                message: "Invalid query parameters",
-            },
-        });
+        return invalidQueryParamResponse(response);
     }
 
     const page =
@@ -81,12 +70,7 @@ sessionRouter.get("/", (request, response) => {
             : null;
 
     if (page !== null && (isNaN(page) || page <= 0)) {
-        return response.status(400).json({
-            error: {
-                code: "VALIDATION_ERROR",
-                message: "Invalid query parameters",
-            },
-        });
+        return invalidQueryParamResponse(response);
     }
 
     let query = `${sessionSelect}

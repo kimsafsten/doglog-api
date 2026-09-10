@@ -15,9 +15,19 @@ const createDog = (name = "Luna", breed = "Border Collie") => {
     .run(name, breed);
 };
 
-const createSession = (dogId: number, date: string, activity: string, durationMinutes: number) => {
+const createSession = (
+  dogId: number, 
+  date: string, 
+  activity: string, 
+  durationMinutes: number) => {
   return db
-    .prepare(`INSERT INTO training_sessions (dog_id, date, activity, duration_minutes) VALUES (?, ?, ?, ?)`)
+    .prepare(`
+      INSERT INTO training_sessions (
+      dog_id, 
+      date, 
+      activity, 
+      duration_minutes) 
+      VALUES (?, ?, ?, ?)`)
     .run(dogId, date, activity, durationMinutes);
 };
 
