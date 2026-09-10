@@ -236,6 +236,69 @@ describe("GET /sessions", () => {
     ]);
   });
 
+it("limits the number of returned training sessions", async () => {
+    const dog = db
+      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
+      .run("Luna", "Border Collie");
+
+    const session1 = db.prepare(`
+    INSERT INTO training_sessions (
+      dog_id,
+      date,
+      activity,
+      duration_minutes
+    )
+    VALUES (?, ?, ?, ?)
+  `).run(dog.lastInsertRowid, "2026-09-08", "Agility", 30);
+
+    const session2 = db.prepare(`
+    INSERT INTO training_sessions (
+      dog_id,
+      date,
+      activity,
+      duration_minutes
+    )
+    VALUES (?, ?, ?, ?)
+  `).run(dog.lastInsertRowid, "2026-09-09", "Obedience", 20);
+
+  const session3 = db.prepare(`
+    INSERT INTO training_sessions (
+      dog_id,
+      date,
+      activity,
+      duration_minutes
+    )
+    VALUES (?, ?, ?, ?)
+  `).run(dog.lastInsertRowid, "2026-09-10", "Rally", 25);
+
+    const response = await request(app)
+      .get("/sessions")
+      .query({ limit: 2 });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([
+      {
+        id: Number(session3.lastInsertRowid),
+        dogId: Number(dog.lastInsertRowid),
+        date: "2026-09-10",
+        activity: "Rally",
+        durationMinutes: 25,
+        notes: null,
+        progress: null,
+        focusNextTime: null,
+      },
+      {
+        id: Number(session2.lastInsertRowid),
+        dogId: Number(dog.lastInsertRowid),
+        date: "2026-09-09",
+        activity: "Obedience",
+        durationMinutes: 20,
+        notes: null,
+        progress: null,
+        focusNextTime: null,
+      },
+    ]);
+  });
 });
 
 describe("GET /sessions/:id", () => {
