@@ -399,6 +399,19 @@ describe("GET /sessions", () => {
     });
   });
 
+  it("returns status 400 when activity is only whitespace", async () => {
+    const response = await request(app)
+      .get("/sessions")
+      .query({ activity: "   " });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid query parameters",
+      },
+    });
+  });
 });
 
 describe("GET /sessions/:id", () => {
