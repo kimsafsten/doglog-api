@@ -38,6 +38,15 @@ sessionRouter.get("/", (request, response) => {
             ? request.query.activity
             : null;
 
+    if (activity !== null && activity.trim() === "") {
+        return response.status(400).json({
+            error: {
+                code: "VALIDATION_ERROR",
+                message: "Invalid query parameters",
+            },
+        });
+    }
+
     const date =
         typeof request.query.date === "string"
             ? request.query.date
