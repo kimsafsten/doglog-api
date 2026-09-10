@@ -173,13 +173,14 @@ describe("GET /sessions", () => {
       Number(dog.lastInsertRowid),
       "2026-09-08",
       "Agility",
-      30);
+      30,
+    );
 
-    const obedienceSession = createSession(
+    createSession(
       Number(dog.lastInsertRowid),
       "2026-09-09",
       "Obedience",
-      20
+      20,
     );
 
     const response = await request(app)
@@ -255,13 +256,14 @@ describe("GET /sessions", () => {
       Number(dog.lastInsertRowid),
       "2026-09-08",
       "Agility",
-      30);
+      30,
+    );
 
-    const session2 = createSession(
+    createSession(
       Number(dog.lastInsertRowid),
       "2026-09-09",
       "Obedience",
-      20
+      20,
     );
 
     const response = await request(app)
@@ -286,25 +288,25 @@ describe("GET /sessions", () => {
   it("limits the number of returned training sessions", async () => {
     const dog = createDog();
 
-    const session1 = createSession(
+    createSession(
       Number(dog.lastInsertRowid),
       "2026-09-08",
       "Agility",
-      30
+      30,
     );
 
     const session2 = createSession(
       Number(dog.lastInsertRowid),
       "2026-09-09",
       "Obedience",
-      20
+      20,
     );
 
     const session3 = createSession(
       Number(dog.lastInsertRowid),
       "2026-09-10",
       "Rally",
-      25
+      25,
     );
 
     const response = await request(app)
@@ -339,25 +341,25 @@ describe("GET /sessions", () => {
   it("paginates the returned training sessions", async () => {
     const dog = createDog();
 
-    const session1 = createSession(
-      Number(dog.lastInsertRowid),
-      "2026-09-08",
-      "Agility",
-      30
-    );
-
     const session2 = createSession(
       Number(dog.lastInsertRowid),
       "2026-09-09",
       "Obedience",
-      20
+      20,
     );
 
-    const session3 = createSession(
+    createSession(
+      Number(dog.lastInsertRowid),
+      "2026-09-08",
+      "Agility",
+      30,
+    );
+
+    createSession(
       Number(dog.lastInsertRowid),
       "2026-09-10",
       "Rally",
-      25
+      25,
     );
 
     const response = await request(app)
@@ -375,7 +377,7 @@ describe("GET /sessions", () => {
         notes: null,
         progress: null,
         focusNextTime: null,
-      }
+      },
     ]);
   });
 
@@ -413,7 +415,7 @@ describe("GET /sessions", () => {
     });
   });
 
-  it("returns status when page is invalid", async () => {
+  it("returns status 400 when page is invalid", async () => {
     const response = await request(app)
       .get("/sessions")
       .query({ page: "invalid", limit: 1 });
@@ -473,7 +475,7 @@ describe("GET /sessions", () => {
     });
   });
 
-  it("returns status when activity is empty", async () => {
+  it("returns status 400 when activity is empty", async () => {
     const response = await request(app)
       .get("/sessions")
       .query({ activity: "" });
