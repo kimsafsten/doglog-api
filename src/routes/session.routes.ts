@@ -4,42 +4,42 @@ import { createTrainingSessionSchema, updateTrainingSessionSchema } from "../sch
 
 export const sessionRouter = Router();
 
-sessionRouter.get("/", (request, response) => {
-  const dogId =
-    typeof request.query.dogId === "string"
-      ? request.query.dogId
-      : null;
+const sessionSelect = `
+  SELECT 
+    id,
+    dog_id AS dogId,
+    date,
+    activity,
+    duration_minutes AS durationMinutes,
+    notes,
+    progress,
+    focus_next_time AS focusNextTime
+  FROM training_sessions
+`;
 
-    const sessions = db.prepare(`
-    SELECT
-      id,
-      dog_id AS dogId,
-      date,
-      activity,
-      duration_minutes AS durationMinutes,
-      notes,
-      progress,
-      focus_next_time AS focusNextTime
-    FROM training_sessions
+
+sessionRouter.get("/", (request, response) => {
+    const dogId =
+        typeof request.query.dogId === "string"
+            ? request.query.dogId
+            : null;
+
+    const activity = 
+    typeof request.query.activity === "string" 
+    ? request.query.activity 
+    : null;
+
+    const sessions = db.prepare(`${sessionSelect}
     WHERE (? IS NULL OR dog_id = ?)
+    AND (? IS NULL OR activity = ?)
     ORDER BY date DESC, id DESC
-  `).all(dogId, dogId);
+  `).all(dogId, dogId, activity, activity);
 
     return response.status(200).json(sessions);
 });
 
 sessionRouter.get("/:id", (request, response) => {
-    const session = db.prepare(`
-    SELECT
-      id,
-      dog_id AS dogId,
-      date,
-      activity,
-      duration_minutes AS durationMinutes,
-      notes,
-      progress,
-      focus_next_time AS focusNextTime
-    FROM training_sessions
+    const session = db.prepare(`${sessionSelect}
     WHERE id = ?
   `).get(request.params.id);
 
@@ -104,16 +104,7 @@ sessionRouter.post("/", (request, response) => {
     );
 
     const session = db.prepare(`
-        SELECT 
-            id, 
-            dog_id AS dogId,
-            date,
-            activity,
-            duration_minutes AS durationMinutes,
-            notes,
-            progress,
-            focus_next_time AS focusNextTime
-        FROM training_sessions
+        ${sessionSelect}
         WHERE id = ?
     `).get(result.lastInsertRowid);
 
@@ -175,35 +166,27 @@ sessionRouter.patch("/:id", (request, response) => {
     }
 
     const updatedSession = db.prepare(`
-        SELECT 
-            id,
-            dog_id AS dogId,
-            date,
-            activity,
-            duration_minutes AS durationMinutes,
-            notes,
-            progress,
-            focus_next_time AS focusNextTime
-        FROM training_sessions
+        ${sessionSelect}
         WHERE id = ?
     `).get(request.params.id);
 
     return response.status(200).json(updatedSession);
 });
 
+
 sessionRouter.delete("/:id", (request, response) => {
-  const result = db
-    .prepare("DELETE FROM training_sessions WHERE id = ?")
-    .run(request.params.id);
+    const result = db
+        .prepare("DELETE FROM training_sessions WHERE id = ?")
+        .run(request.params.id);
 
-  if (result.changes === 0) {
-    return response.status(404).json({
-      error: {
-        code: "SESSION_NOT_FOUND",
-        message: "Training session not found",
-      },
-    });
-  }
+    if (result.changes === 0) {
+        return response.status(404).json({
+            error: {
+                code: "SESSION_NOT_FOUND",
+                message: "Training session not found",
+            },
+        });
+    }
 
-  return response.status(204).send();
+    return response.status(204).send();
 });
