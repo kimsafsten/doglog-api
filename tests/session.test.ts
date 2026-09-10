@@ -147,6 +147,49 @@ describe("GET /sessions", () => {
       },
     ]);
   });
+  it("filters training sessions by activity", async () => {
+    const dog = db
+      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
+      .run("Luna", "Border Collie");
+
+    const agilitySession = db.prepare(`
+    INSERT INTO training_sessions (
+      dog_id,
+      date,
+      activity,
+      duration_minutes
+    )
+    VALUES (?, ?, ?, ?)
+  `).run(dog.lastInsertRowid, "2026-09-08", "Agility", 30);
+
+    const obedienceSession = db.prepare(`
+    INSERT INTO training_sessions (
+      dog_id,
+      date,
+      activity,
+      duration_minutes
+    )
+    VALUES (?, ?, ?, ?)
+  `).run(dog.lastInsertRowid, "2026-09-08", "Obedience", 20);
+
+    const response = await request(app)
+      .get("/sessions")
+      .query({ activity: "Agility" });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([
+      {
+        id: Number(agilitySession.lastInsertRowid),
+        dogId: Number(dog.lastInsertRowid),
+        date: "2026-09-08",
+        activity: "Agility",
+        durationMinutes: 30,
+        notes: null,
+        progress: null,
+        focusNextTime: null,
+      },
+    ]);
+  });
 });
 
 describe("GET /sessions/:id", () => {
