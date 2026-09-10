@@ -21,8 +21,17 @@ const sessionSelect = `
 sessionRouter.get("/", (request, response) => {
     const dogId =
         typeof request.query.dogId === "string"
-            ? request.query.dogId
+            ? parseInt(request.query.dogId, 10)
             : null;
+
+    if (dogId !== null && (isNaN(dogId) || dogId <= 0)) {
+        return response.status(400).json({
+            error: {
+                code: "VALIDATION_ERROR",
+                message: "Invalid query parameters",
+            },
+        });
+    }
 
     const activity =
         typeof request.query.activity === "string"
@@ -48,7 +57,7 @@ sessionRouter.get("/", (request, response) => {
             ? parseInt(request.query.limit, 10)
             : 10;
 
-    if (limit !== null && (isNaN(limit) || limit <= 0)) {
+    if (isNaN(limit) || limit <= 0) {
         return response.status(400).json({
             error: {
                 code: "VALIDATION_ERROR",
@@ -56,7 +65,6 @@ sessionRouter.get("/", (request, response) => {
             },
         });
     }
-
 
     const page =
         typeof request.query.page === "string"
@@ -88,14 +96,12 @@ sessionRouter.get("/", (request, response) => {
         date,
     ];
 
-    if (limit !== null) {
-        query += `
-        LIMIT ?
-        `;
-        params.push(limit);
-    }
+    query += `
+    LIMIT ?
+    `;
+    params.push(limit);
 
-    if (page !== null && limit !== null) {
+    if (page !== null) {
         const offset = (page - 1) * limit;
         query += `
         OFFSET ?
