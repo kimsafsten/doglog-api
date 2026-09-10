@@ -39,6 +39,15 @@ sessionRouter.get("/", (request, response) => {
             ? parseInt(request.query.limit, 10)
             : null;
 
+            if (limit !== null && (isNaN(limit) || limit <= 0)) {
+                return response.status(400).json({
+                    error: {
+                        code: "VALIDATION_ERROR",
+                        message: "Invalid query parameters",
+                    },
+                });
+            }
+
     const page =
         typeof request.query.page === "string"
             ? parseInt(request.query.page, 10)

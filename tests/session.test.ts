@@ -320,7 +320,7 @@ describe("GET /sessions", () => {
     expect(response.body).toMatchObject({
       error: {
         code: "VALIDATION_ERROR",
-        message: "Invalid request body",
+        message: "Invalid query parameters",
       },
     });
   });
