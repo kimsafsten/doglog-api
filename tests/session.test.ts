@@ -324,6 +324,20 @@ describe("GET /sessions", () => {
       },
     });
   });
+
+  it("returns status when page is invalid", async () => {
+    const response = await request(app)
+      .get("/sessions")
+      .query({ page: "invalid", limit: 1 });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid query parameters",
+      },
+    });
+  });
 });
 
 describe("GET /sessions/:id", () => {
