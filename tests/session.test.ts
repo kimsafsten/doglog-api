@@ -147,6 +147,7 @@ describe("GET /sessions", () => {
       },
     ]);
   });
+
   it("filters training sessions by activity", async () => {
     const dog = db
       .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
@@ -190,6 +191,51 @@ describe("GET /sessions", () => {
       },
     ]);
   });
+
+  it("filters training sessions by date", async () => {
+    const dog = db
+      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
+      .run("Luna", "Border Collie");
+
+    const session1 = db.prepare(`
+    INSERT INTO training_sessions (
+      dog_id,
+      date,
+      activity,
+      duration_minutes
+    )
+    VALUES (?, ?, ?, ?)
+  `).run(dog.lastInsertRowid, "2026-09-08", "Agility", 30);
+
+    const session2 = db.prepare(`
+    INSERT INTO training_sessions (
+      dog_id,
+      date,
+      activity,
+      duration_minutes
+    )
+    VALUES (?, ?, ?, ?)
+  `).run(dog.lastInsertRowid, "2026-09-09", "Obedience", 20);
+
+    const response = await request(app)
+      .get("/sessions")
+      .query({ date: "2026-09-08" });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([
+      {
+        id: Number(session1.lastInsertRowid),
+        dogId: Number(dog.lastInsertRowid),
+        date: "2026-09-08",
+        activity: "Agility",
+        durationMinutes: 30,
+        notes: null,
+        progress: null,
+        focusNextTime: null,
+      },
+    ]);
+  });
+
 });
 
 describe("GET /sessions/:id", () => {
