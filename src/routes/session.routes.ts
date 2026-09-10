@@ -37,7 +37,7 @@ sessionRouter.get("/", (request, response) => {
     const limit =
         typeof request.query.limit === "string"
             ? parseInt(request.query.limit, 10)
-            : null;
+            : 10;
 
     if (limit !== null && (isNaN(limit) || limit <= 0)) {
         return response.status(400).json({
