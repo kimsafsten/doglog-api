@@ -229,7 +229,7 @@ describe("GET /sessions", () => {
     ]);
   });
 
-it("limits the number of returned training sessions", async () => {
+  it("limits the number of returned training sessions", async () => {
     const dog = createDog();
 
     const session1 = db.prepare(`
@@ -252,7 +252,7 @@ it("limits the number of returned training sessions", async () => {
     VALUES (?, ?, ?, ?)
   `).run(dog.lastInsertRowid, "2026-09-09", "Obedience", 20);
 
-  const session3 = db.prepare(`
+    const session3 = db.prepare(`
     INSERT INTO training_sessions (
       dog_id,
       date,
