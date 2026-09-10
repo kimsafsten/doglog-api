@@ -34,6 +34,15 @@ sessionRouter.get("/", (request, response) => {
             ? request.query.date
             : null;
 
+    if (date !== null && !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return response.status(400).json({
+            error: {
+                code: "VALIDATION_ERROR",
+                message: "Invalid query parameters",
+            },
+        });
+    }
+
     const limit =
         typeof request.query.limit === "string"
             ? parseInt(request.query.limit, 10)
