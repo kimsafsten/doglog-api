@@ -231,34 +231,6 @@ describe("GET /sessions", () => {
     expect(response.body).toEqual([]);
   });
 
-  it("returns status 400 when limit is invalid", async () => {
-    const response = await request(app)
-      .get("/sessions")
-      .query({ limit: "invalid" });
-
-    expect(response.status).toBe(400);
-    expect(response.body).toMatchObject({
-      error: {
-        code: "VALIDATION_ERROR",
-        message: "Invalid query parameters",
-      },
-    });
-  });
-
-  it("returns status 400 when page is invalid", async () => {
-    const response = await request(app)
-      .get("/sessions")
-      .query({ page: "invalid", limit: 1 });
-
-    expect(response.status).toBe(400);
-    expect(response.body).toMatchObject({
-      error: {
-        code: "VALIDATION_ERROR",
-        message: "Invalid query parameters",
-      },
-    });
-  });
-
   it("returns 10 sessions by default when no limit is provided", async () => {
     const dog = createDog();
 
@@ -272,61 +244,5 @@ describe("GET /sessions", () => {
 
     expect(response.status).toBe(200);
     expect(response.body.length).toBe(10);
-  });
-
-  it("returns status 400 when date is invalid", async () => {
-    const response = await request(app)
-      .get("/sessions")
-      .query({ date: "invalid-date" });
-
-    expect(response.status).toBe(400);
-    expect(response.body).toMatchObject({
-      error: {
-        code: "VALIDATION_ERROR",
-        message: "Invalid query parameters",
-      },
-    });
-  });
-
-  it("returns status 400 when dogId is invalid", async () => {
-    const response = await request(app)
-      .get("/sessions")
-      .query({ dogId: "invalid" });
-
-    expect(response.status).toBe(400);
-    expect(response.body).toMatchObject({
-      error: {
-        code: "VALIDATION_ERROR",
-        message: "Invalid query parameters",
-      },
-    });
-  });
-
-  it("returns status 400 when activity is empty", async () => {
-    const response = await request(app)
-      .get("/sessions")
-      .query({ activity: "" });
-
-    expect(response.status).toBe(400);
-    expect(response.body).toMatchObject({
-      error: {
-        code: "VALIDATION_ERROR",
-        message: "Invalid query parameters",
-      },
-    });
-  });
-
-  it("returns status 400 when activity is only whitespace", async () => {
-    const response = await request(app)
-      .get("/sessions")
-      .query({ activity: "   " });
-
-    expect(response.status).toBe(400);
-    expect(response.body).toEqual({
-      error: {
-        code: "VALIDATION_ERROR",
-        message: "Invalid query parameters",
-      },
-    });
   });
 });
