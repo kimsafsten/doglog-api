@@ -57,7 +57,7 @@ const dogNotFoundResponse = (response: Response) => {
   });
 };
 
-const getSessionById = (id: string | number) => {
+const getSessionById = (id: string | number | bigint) => {
   return db.prepare(`
     ${sessionSelect}
     WHERE id = ?
