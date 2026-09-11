@@ -1,5 +1,12 @@
-import { type Request, type Response, Router } from "express";
+import { type Request, Router } from "express";
 import { db } from "../database.js";
+import {
+  dogNotFoundResponse,
+  invalidQueryParamResponse,
+  invalidRequestBodyResponse,
+  parsePositiveInt,
+  sessionNotFoundResponse,
+} from "./route-helpers.js";
 import { createTrainingSessionSchema, updateTrainingSessionSchema } from "../schemas/session.schema.js";
 
 export const sessionRouter = Router();
@@ -17,61 +24,11 @@ const sessionSelect = `
   FROM training_sessions
 `;
 
-const invalidQueryParamResponse = (response: Response) => {
-  return response.status(400).json({
-    error: {
-      code: "VALIDATION_ERROR",
-      message: "Invalid query parameters",
-    },
-  });
-};
-
-const invalidRequestBodyResponse = (
-  response: Response,
-  details: Record<string, string[] | undefined>,
-) => {
-  return response.status(400).json({
-    error: {
-      code: "VALIDATION_ERROR",
-      message: "Invalid request body",
-      details,
-    },
-  });
-};
-
-const sessionNotFoundResponse = (response: Response) => {
-  return response.status(404).json({
-    error: {
-      code: "SESSION_NOT_FOUND",
-      message: "Training session not found",
-    },
-  });
-};
-
-const dogNotFoundResponse = (response: Response) => {
-  return response.status(404).json({
-    error: {
-      code: "DOG_NOT_FOUND",
-      message: "Dog not found",
-    },
-  });
-};
-
 const getSessionById = (id: string | number | bigint) => {
   return db.prepare(`
     ${sessionSelect}
     WHERE id = ?
   `).get(id);
-};
-
-const parsePositiveInt = (value: unknown) => {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const parsedValue = parseInt(value, 10);
-
-  return Number.isNaN(parsedValue) ? null : parsedValue;
 };
 
 const getSessionFilters = (

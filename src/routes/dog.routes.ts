@@ -1,6 +1,11 @@
-import { type Response, Router } from "express";
+import { Router } from "express";
 import { db } from "../database.js";
 import { createDogSchema, updateDogSchema } from "../schemas/dog.schema.js";
+import {
+  dogAlreadyExistsResponse,
+  dogNotFoundResponse,
+  invalidRequestBodyResponse,
+} from "./route-helpers.js";
 
 export const dogRouter = Router();
 
@@ -8,37 +13,6 @@ const dogSelect = `
   SELECT id, name, breed
   FROM dogs
 `;
-
-const invalidRequestBodyResponse = (
-  response: Response,
-  details: Record<string, string[] | undefined>,
-) => {
-  return response.status(400).json({
-    error: {
-      code: "VALIDATION_ERROR",
-      message: "Invalid request body",
-      details,
-    },
-  });
-};
-
-const dogNotFoundResponse = (response: Response) => {
-  return response.status(404).json({
-    error: {
-      code: "DOG_NOT_FOUND",
-      message: "Dog not found",
-    },
-  });
-};
-
-const dogAlreadyExistsResponse = (response: Response) => {
-  return response.status(409).json({
-    error: {
-      code: "DOG_ALREADY_EXISTS",
-      message: "A dog with this name already exists",
-    },
-  });
-};
 
 const getDogById = (id: string | number | bigint) => {
   return db.prepare(`
