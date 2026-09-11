@@ -13,6 +13,7 @@ export const seedDatabase = (db: Database.Database) => {
     return;
   }
 
+  // Insert the demo data as one unit so we do not end up with half-seeded data.
   const insertSeedData = db.transaction(() => {
     const luna = db
       .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")

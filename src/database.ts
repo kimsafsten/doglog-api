@@ -6,6 +6,7 @@ const databaseFile =
 
 export const db = new Database(databaseFile);
 
+// SQLite requires this pragma for foreign key constraints such as cascade delete.
 db.pragma("foreign_keys = ON");
 
 db.exec(`
@@ -28,4 +29,5 @@ db.exec(`
     )
 `);
 
+// Seed only affects the development database; tests still run against a clean in-memory DB.
 seedDatabase(db);

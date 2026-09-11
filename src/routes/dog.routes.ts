@@ -62,6 +62,7 @@ dogRouter.post("/", (request, response) => {
 
   const existingDog = getDogByName(name);
 
+  // Name uniqueness is checked case-insensitively so "Luna" and "luna" count as the same dog.
   if (existingDog) {
     return dogAlreadyExistsResponse(response);
   }

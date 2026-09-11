@@ -7,6 +7,7 @@ import { openApiDocument } from "./openapi.js";
 const app = express();
 
 app.use(express.json());
+// Serve the interactive OpenAPI docs separately from the API routes.
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
 

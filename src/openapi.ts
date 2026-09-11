@@ -1,11 +1,12 @@
 export const openApiDocument = {
-    openapi: "3.0.0",
-    info: {
-        title: "DogLog API",
-        version: "1.0.0",
-        description: "API for logging dogs and training sessions",
-    },
-    paths: {
+  openapi: "3.0.0",
+  info: {
+    title: "DogLog API",
+    version: "1.0.0",
+    description: "API for logging dogs and training sessions",
+  },
+  // Paths describe endpoints, while reusable payload shapes live under components.schemas.
+  paths: {
         "/health": {
             get: {
                 summary: "Check API status",

@@ -10,6 +10,7 @@ export const createTrainingSessionSchema = z.object({
   focusNextTime: z.string().trim().max(1000).optional(),
 });
 
+// PATCH is partial, but the body still needs to include at least one field.
 export const updateTrainingSessionSchema =
   createTrainingSessionSchema.partial().refine(
     (data) => Object.keys(data).length > 0,

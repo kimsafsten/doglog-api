@@ -13,6 +13,7 @@ import { createTrainingSessionSchema, updateTrainingSessionSchema } from "../sch
 
 export const sessionRouter = Router();
 
+// Reused by list, create, and single-session lookups so the API always returns camelCase fields.
 const sessionSelect = `
   SELECT 
     id,
@@ -72,6 +73,7 @@ sessionRouter.post("/", (request, response) => {
     .prepare("SELECT id FROM dogs WHERE id = ?")
     .get(dogId);
 
+  // Sessions belong to a dog, so we fail fast before writing an orphaned row.
   if (!dog) {
     return dogNotFoundResponse(response);
   }

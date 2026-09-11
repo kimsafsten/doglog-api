@@ -79,6 +79,7 @@ export const buildSessionListQuery = (
   sessionSelect: string,
   filters: SessionFilters,
 ) => {
+  // Each filter uses a nullable predicate so one prepared query can handle many combinations.
   let query = `${sessionSelect}
     WHERE (? IS NULL OR dog_id = ?)
     AND (? IS NULL OR activity = ?)
