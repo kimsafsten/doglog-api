@@ -154,6 +154,56 @@ export const openApiDocument = {
         "/sessions": {
             get: {
                 summary: "Get training sessions",
+                parameters: [
+                    {
+                        name: "dogId",
+                        in: "query",
+                        required: false,
+                        description: "Filter sessions by dog id",
+                        schema: {
+                            type: "integer",
+                        },
+                    },
+                    {
+                        name: "activity",
+                        in: "query",
+                        required: false,
+                        description: "Filter sessions by activity",
+                        schema: {
+                            type: "string",
+                        },
+                    },
+                    {
+                        name: "date",
+                        in: "query",
+                        required: false,
+                        description: "Filter sessions by date in YYYY-MM-DD format",
+                        schema: {
+                            type: "string",
+                            example: "2026-09-07",
+                        },
+                    },
+                    {
+                        name: "limit",
+                        in: "query",
+                        required: false,
+                        description: "Limit the number of returned sessions. Defaults to 10",
+                        schema: {
+                            type: "integer",
+                            example: 10,
+                        },
+                    },
+                    {
+                        name: "page",
+                        in: "query",
+                        required: false,
+                        description: "Page number used together with limit",
+                        schema: {
+                            type: "integer",
+                            example: 2,
+                        },
+                    },
+                ],
                 responses: {
                     "200": {
                         description: "List of training sessions",
@@ -167,6 +217,9 @@ export const openApiDocument = {
                                 },
                             },
                         },
+                    },
+                    "400": {
+                        description: "Invalid query parameters",
                     },
                 },
             },
