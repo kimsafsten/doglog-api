@@ -1,19 +1,19 @@
 import request from "supertest";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import app from "../src/app.js";
-import { db } from "../src/database.js";
+import app from "../../src/app.js";
+import { db } from "../../src/database.js";
 import {
   buildDogData,
   buildDogResponse,
   createDog,
-} from "./helpers/dog-test-helpers.js";
-import { createSession } from "./helpers/session-test-helpers.js";
+} from "../helpers/dog-test-helpers.js";
+import { createSession } from "../helpers/session-test-helpers.js";
 
 beforeEach(() => {
+  db.prepare("DELETE FROM training_sessions").run();
   db.prepare("DELETE FROM dogs").run();
 });
-
 
 describe("POST /dogs", () => {
   it("creates a dog and returns status 201", async () => {
@@ -44,7 +44,6 @@ describe("POST /dogs", () => {
       },
     });
   });
-
 
   it("returns status 400 when name is missing", async () => {
     const response = await request(app).post("/dogs").send({
@@ -91,46 +90,6 @@ describe("POST /dogs", () => {
   });
 });
 
-describe("GET /dogs", () => {
-  it("returns all dogs", async () => {
-    const dog = createDog();
-
-    const response = await request(app).get("/dogs");
-
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual([
-      buildDogResponse(Number(dog.lastInsertRowid)),
-    ]);
-  });
-});
-
-describe("GET /dogs/:id", () => {
-  it("returns one dog by id", async () => {
-    const result = createDog();
-
-    const response = await request(app).get(
-      `/dogs/${result.lastInsertRowid}`,
-    );
-
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual(
-      buildDogResponse(Number(result.lastInsertRowid)),
-    );
-  });
-
-  it("returns status 404 when dog does not exist", async () => {
-    const response = await request(app).get("/dogs/999999");
-
-    expect(response.status).toBe(404);
-    expect(response.body).toEqual({
-      error: {
-        code: "DOG_NOT_FOUND",
-        message: "Dog not found",
-      },
-    });
-  });
-});
-
 describe("PATCH /dogs/:id", () => {
   it("updates an existing dog", async () => {
     const result = createDog();
@@ -167,7 +126,6 @@ describe("PATCH /dogs/:id", () => {
 
   it("returns status 409 when updated name already exists", async () => {
     createDog();
-
     const result = createDog("Milo", "Labrador");
 
     const response = await request(app)
