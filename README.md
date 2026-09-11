@@ -6,7 +6,7 @@ The project is built with Node.js, TypeScript, Express, SQLite, Zod, Vitest, and
 
 ## Project Information
 
-- Author: Kim Safsten
+- Author: Kim Säfsten
 - Class: SYS25D
 - Course: API-utveckling Node.js
 - School: Medieinstitutet
@@ -135,8 +135,8 @@ Example request body for `POST /sessions`:
   "activity": "Agility",
   "durationMinutes": 30,
   "notes": "Bra fokus",
-  "progress": "Sakrare i slalom",
-  "focusNextTime": "Trana starter"
+  "progress": "Säkrare i slalom",
+  "focusNextTime": "Träna starter"
 }
 ```
 
