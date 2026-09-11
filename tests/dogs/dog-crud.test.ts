@@ -1,5 +1,5 @@
 import request from "supertest";
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import app from "../../src/app.js";
 import { db } from "../../src/database.js";
@@ -9,11 +9,9 @@ import {
   createDog,
 } from "../helpers/dog-test-helpers.js";
 import { createSession } from "../helpers/session-test-helpers.js";
+import { resetDatabase } from "../helpers/test-db.js";
 
-beforeEach(() => {
-  db.prepare("DELETE FROM training_sessions").run();
-  db.prepare("DELETE FROM dogs").run();
-});
+resetDatabase();
 
 describe("POST /dogs", () => {
   it("creates a dog and returns status 201", async () => {

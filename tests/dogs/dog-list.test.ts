@@ -1,17 +1,14 @@
 import request from "supertest";
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import app from "../../src/app.js";
-import { db } from "../../src/database.js";
 import {
   buildDogResponse,
   createDog,
 } from "../helpers/dog-test-helpers.js";
+import { resetDatabase } from "../helpers/test-db.js";
 
-beforeEach(() => {
-  db.prepare("DELETE FROM training_sessions").run();
-  db.prepare("DELETE FROM dogs").run();
-});
+resetDatabase();
 
 describe("GET /dogs", () => {
   it("returns all dogs", async () => {
