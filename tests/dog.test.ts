@@ -3,6 +3,12 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import app from "../src/app.js";
 import { db } from "../src/database.js";
+import {
+  buildDogData,
+  buildDogResponse,
+  createDog,
+} from "./helpers/dog-test-helpers.js";
+import { createSession } from "./helpers/session-test-helpers.js";
 
 beforeEach(() => {
   db.prepare("DELETE FROM dogs").run();
@@ -11,26 +17,19 @@ beforeEach(() => {
 
 describe("POST /dogs", () => {
   it("creates a dog and returns status 201", async () => {
-    const newDog = {
-      name: "Luna",
-      breed: "Border Collie",
-    };
+    const newDog = buildDogData();
 
     const response = await request(app).post("/dogs").send(newDog);
 
     expect(response.status).toBe(201);
     expect(response.body).toMatchObject({
       id: expect.any(Number),
-      name: "Luna",
-      breed: "Border Collie",
+      ...newDog,
     });
   });
 
   it("returns status 409 when dog name already exists", async () => {
-    await request(app).post("/dogs").send({
-      name: "Luna",
-      breed: "Border Collie",
-    });
+    await request(app).post("/dogs").send(buildDogData());
 
     const response = await request(app).post("/dogs").send({
       name: "luna",
@@ -94,38 +93,29 @@ describe("POST /dogs", () => {
 
 describe("GET /dogs", () => {
   it("returns all dogs", async () => {
-    db.prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
+    const dog = createDog();
 
     const response = await request(app).get("/dogs");
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual([
-      {
-        id: expect.any(Number),
-        name: "Luna",
-        breed: "Border Collie",
-      },
+      buildDogResponse(Number(dog.lastInsertRowid)),
     ]);
   });
 });
 
 describe("GET /dogs/:id", () => {
   it("returns one dog by id", async () => {
-    const result = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
+    const result = createDog();
 
     const response = await request(app).get(
       `/dogs/${result.lastInsertRowid}`,
     );
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({
-      id: Number(result.lastInsertRowid),
-      name: "Luna",
-      breed: "Border Collie",
-    });
+    expect(response.body).toEqual(
+      buildDogResponse(Number(result.lastInsertRowid)),
+    );
   });
 
   it("returns status 404 when dog does not exist", async () => {
@@ -143,9 +133,7 @@ describe("GET /dogs/:id", () => {
 
 describe("PATCH /dogs/:id", () => {
   it("updates an existing dog", async () => {
-    const result = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
+    const result = createDog();
 
     const response = await request(app)
       .patch(`/dogs/${result.lastInsertRowid}`)
@@ -154,17 +142,15 @@ describe("PATCH /dogs/:id", () => {
       });
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({
-      id: Number(result.lastInsertRowid),
-      name: "Luna",
-      breed: "Australian Shepherd",
-    });
+    expect(response.body).toEqual(
+      buildDogResponse(Number(result.lastInsertRowid), {
+        breed: "Australian Shepherd",
+      }),
+    );
   });
 
   it("returns status 400 when no fields are provided", async () => {
-    const result = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
+    const result = createDog();
 
     const response = await request(app)
       .patch(`/dogs/${result.lastInsertRowid}`)
@@ -180,14 +166,9 @@ describe("PATCH /dogs/:id", () => {
   });
 
   it("returns status 409 when updated name already exists", async () => {
-    db.prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)").run(
-      "Luna",
-      "Border Collie",
-    );
+    createDog();
 
-    const result = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Milo", "Labrador");
+    const result = createDog("Milo", "Labrador");
 
     const response = await request(app)
       .patch(`/dogs/${result.lastInsertRowid}`)
@@ -205,9 +186,7 @@ describe("PATCH /dogs/:id", () => {
   });
 
   it("returns status 400 when breed is empty", async () => {
-    const result = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
+    const result = createDog();
 
     const response = await request(app)
       .patch(`/dogs/${result.lastInsertRowid}`)
@@ -227,9 +206,7 @@ describe("PATCH /dogs/:id", () => {
 
 describe("DELETE /dogs/:id", () => {
   it("deletes an existing dog and returns status 204", async () => {
-    const result = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
+    const result = createDog();
 
     const response = await request(app).delete(
       `/dogs/${result.lastInsertRowid}`,
@@ -246,19 +223,11 @@ describe("DELETE /dogs/:id", () => {
   });
 
   it("deletes the dog's training sessions", async () => {
-    const dog = db
-      .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-      .run("Luna", "Border Collie");
+    const dog = createDog();
 
-    db.prepare(`
-    INSERT INTO training_sessions (
-      dog_id,
-      date,
-      activity,
-      duration_minutes
-    )
-    VALUES (?, ?, ?, ?)
-  `).run(dog.lastInsertRowid, "2026-09-08", "Agility", 30);
+    createSession(Number(dog.lastInsertRowid), {
+      date: "2026-09-08",
+    });
 
     await request(app).delete(`/dogs/${dog.lastInsertRowid}`);
 

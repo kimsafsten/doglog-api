@@ -1,15 +1,10 @@
 import { db } from "../../src/database.js";
+import { createDog } from "./dog-test-helpers.js";
 
 type SessionDefaults = {
   date: string;
   activity: string;
   durationMinutes: number;
-};
-
-export const createDog = (name = "Luna", breed = "Border Collie") => {
-  return db
-    .prepare("INSERT INTO dogs (name, breed) VALUES (?, ?)")
-    .run(name, breed);
 };
 
 export const createSession = (
@@ -71,3 +66,5 @@ export const buildBasicSessionResponse = (
     focusNextTime: null,
   };
 };
+
+export { createDog };
