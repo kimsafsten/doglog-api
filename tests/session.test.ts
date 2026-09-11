@@ -3,12 +3,17 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import app from "../src/app.js";
 import { db } from "../src/database.js";
-import { type Request, type Response, Router } from "express";
 
 beforeEach(() => {
   db.prepare("DELETE FROM training_sessions").run();
   db.prepare("DELETE FROM dogs").run();
 });
+
+type SessionDefaults = {
+  date: string;
+  activity: string;
+  durationMinutes: number;
+};
 
 const createDog = (name = "Luna", breed = "Border Collie") => {
   return db
@@ -17,19 +22,30 @@ const createDog = (name = "Luna", breed = "Border Collie") => {
 };
 
 const createSession = (
-  dogId: number, 
-  date: string, 
-  activity: string, 
-  durationMinutes: number) => {
+  dogId: number,
+  overrides: Partial<SessionDefaults> = {},
+) => {
+  const session = {
+    date: "2026-09-07",
+    activity: "Agility",
+    durationMinutes: 30,
+    ...overrides,
+  };
+
   return db
     .prepare(`
       INSERT INTO training_sessions (
-      dog_id, 
-      date, 
-      activity, 
-      duration_minutes) 
+      dog_id,
+      date,
+      activity,
+      duration_minutes)
       VALUES (?, ?, ?, ?)`)
-    .run(dogId, date, activity, durationMinutes);
+    .run(
+      dogId,
+      session.date,
+      session.activity,
+      session.durationMinutes,
+    );
 };
 
 const buildFullSessionData = () => ({
@@ -40,6 +56,30 @@ const buildFullSessionData = () => ({
   progress: "Säkrare i slalomen",
   focusNextTime: "Träna lugna starter",
 });
+
+const buildBasicSessionResponse = (
+  id: number,
+  dogId: number,
+  overrides: Partial<SessionDefaults> = {},
+) => {
+  const session = {
+    date: "2026-09-07",
+    activity: "Agility",
+    durationMinutes: 30,
+    ...overrides,
+  };
+
+  return {
+    id,
+    dogId,
+    date: session.date,
+    activity: session.activity,
+    durationMinutes: session.durationMinutes,
+    notes: null,
+    progress: null,
+    focusNextTime: null,
+  };
+};
 
 describe("POST /sessions", () => {
   it("creates a training session and returns status 201", async () => {
@@ -145,18 +185,8 @@ describe("GET /sessions", () => {
     const luna = createDog();
     const milo = createDog("Milo", "Labrador");
 
-    const lunaSession = createSession(
-      Number(luna.lastInsertRowid),
-      "2026-09-08",
-      "Agility",
-      30);
-
-    createSession(
-      Number(milo.lastInsertRowid),
-      "2026-09-08",
-      "Lydnad",
-      20
-    );
+    const lunaSession = createSession(Number(luna.lastInsertRowid));
+    createSession(Number(milo.lastInsertRowid));
 
     const response = await request(app)
       .get("/sessions")
@@ -164,34 +194,23 @@ describe("GET /sessions", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual([
-      {
-        id: Number(lunaSession.lastInsertRowid),
-        dogId: Number(luna.lastInsertRowid),
-        date: "2026-09-08",
-        activity: "Agility",
-        durationMinutes: 30,
-        notes: null,
-        progress: null,
-        focusNextTime: null,
-      },
+      buildBasicSessionResponse(
+        Number(lunaSession.lastInsertRowid),
+        Number(luna.lastInsertRowid),
+      ),
     ]);
   });
 
   it("filters training sessions by activity", async () => {
     const dog = createDog();
 
-    const agilitySession = createSession(
-      Number(dog.lastInsertRowid),
-      "2026-09-08",
-      "Agility",
-      30,
-    );
+    const agilitySession = createSession(Number(dog.lastInsertRowid));
 
     createSession(
       Number(dog.lastInsertRowid),
-      "2026-09-09",
-      "Obedience",
-      20,
+      {
+        activity: "Obedience",
+      },
     );
 
     const response = await request(app)
@@ -200,16 +219,10 @@ describe("GET /sessions", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual([
-      {
-        id: Number(agilitySession.lastInsertRowid),
-        dogId: Number(dog.lastInsertRowid),
-        date: "2026-09-08",
-        activity: "Agility",
-        durationMinutes: 30,
-        notes: null,
-        progress: null,
-        focusNextTime: null,
-      },
+      buildBasicSessionResponse(
+        Number(agilitySession.lastInsertRowid),
+        Number(dog.lastInsertRowid),
+      ),
     ]);
   });
 
@@ -217,25 +230,18 @@ describe("GET /sessions", () => {
     const luna = createDog();
     const milo = createDog("Milo", "Labrador");
 
-    const lunaAgilitySession = createSession(
-      Number(luna.lastInsertRowid),
-      "2026-09-08",
-      "Agility",
-      30,
-    );
+    const lunaAgilitySession = createSession(Number(luna.lastInsertRowid));
 
     createSession(
       Number(luna.lastInsertRowid),
-      "2026-09-09",
-      "Obedience",
-      20,
+      {
+        activity: "Obedience",
+      },
     );
 
     createSession(
       Number(milo.lastInsertRowid),
-      "2026-09-10",
-      "Agility",
-      25,
+      {},
     );
 
     const response = await request(app)
@@ -247,16 +253,10 @@ describe("GET /sessions", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual([
-      {
-        id: Number(lunaAgilitySession.lastInsertRowid),
-        dogId: Number(luna.lastInsertRowid),
-        date: "2026-09-08",
-        activity: "Agility",
-        durationMinutes: 30,
-        notes: null,
-        progress: null,
-        focusNextTime: null,
-      },
+      buildBasicSessionResponse(
+        Number(lunaAgilitySession.lastInsertRowid),
+        Number(luna.lastInsertRowid),
+      ),
     ]);
   });
 
@@ -265,16 +265,14 @@ describe("GET /sessions", () => {
 
     const session1 = createSession(
       Number(dog.lastInsertRowid),
-      "2026-09-08",
-      "Agility",
-      30,
+      { date: "2026-09-08" },
     );
 
     createSession(
       Number(dog.lastInsertRowid),
-      "2026-09-09",
-      "Obedience",
-      20,
+      {
+        date: "2026-09-09",
+      },
     );
 
     const response = await request(app)
@@ -283,16 +281,11 @@ describe("GET /sessions", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual([
-      {
-        id: Number(session1.lastInsertRowid),
-        dogId: Number(dog.lastInsertRowid),
-        date: "2026-09-08",
-        activity: "Agility",
-        durationMinutes: 30,
-        notes: null,
-        progress: null,
-        focusNextTime: null,
-      },
+      buildBasicSessionResponse(
+        Number(session1.lastInsertRowid),
+        Number(dog.lastInsertRowid),
+        { date: "2026-09-08" },
+      ),
     ]);
   });
 
@@ -301,23 +294,21 @@ describe("GET /sessions", () => {
 
     createSession(
       Number(dog.lastInsertRowid),
-      "2026-09-08",
-      "Agility",
-      30,
+      { date: "2026-09-08" },
     );
 
     const session2 = createSession(
       Number(dog.lastInsertRowid),
-      "2026-09-09",
-      "Obedience",
-      20,
+      {
+        date: "2026-09-09",
+      },
     );
 
     const session3 = createSession(
       Number(dog.lastInsertRowid),
-      "2026-09-10",
-      "Rally",
-      25,
+      {
+        date: "2026-09-10",
+      },
     );
 
     const response = await request(app)
@@ -326,26 +317,20 @@ describe("GET /sessions", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual([
-      {
-        id: Number(session3.lastInsertRowid),
-        dogId: Number(dog.lastInsertRowid),
-        date: "2026-09-10",
-        activity: "Rally",
-        durationMinutes: 25,
-        notes: null,
-        progress: null,
-        focusNextTime: null,
-      },
-      {
-        id: Number(session2.lastInsertRowid),
-        dogId: Number(dog.lastInsertRowid),
-        date: "2026-09-09",
-        activity: "Obedience",
-        durationMinutes: 20,
-        notes: null,
-        progress: null,
-        focusNextTime: null,
-      },
+      buildBasicSessionResponse(
+        Number(session3.lastInsertRowid),
+        Number(dog.lastInsertRowid),
+        {
+          date: "2026-09-10",
+        },
+      ),
+      buildBasicSessionResponse(
+        Number(session2.lastInsertRowid),
+        Number(dog.lastInsertRowid),
+        {
+          date: "2026-09-09",
+        },
+      ),
     ]);
   });
 
@@ -354,23 +339,21 @@ describe("GET /sessions", () => {
 
     const session2 = createSession(
       Number(dog.lastInsertRowid),
-      "2026-09-09",
-      "Obedience",
-      20,
+      {
+        date: "2026-09-09",
+      },
     );
 
     createSession(
       Number(dog.lastInsertRowid),
-      "2026-09-08",
-      "Agility",
-      30,
+      { date: "2026-09-08" },
     );
 
     createSession(
       Number(dog.lastInsertRowid),
-      "2026-09-10",
-      "Rally",
-      25,
+      {
+        date: "2026-09-10",
+      },
     );
 
     const response = await request(app)
@@ -379,16 +362,13 @@ describe("GET /sessions", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual([
-      {
-        id: Number(session2.lastInsertRowid),
-        dogId: Number(dog.lastInsertRowid),
-        date: "2026-09-09",
-        activity: "Obedience",
-        durationMinutes: 20,
-        notes: null,
-        progress: null,
-        focusNextTime: null,
-      },
+      buildBasicSessionResponse(
+        Number(session2.lastInsertRowid),
+        Number(dog.lastInsertRowid),
+        {
+          date: "2026-09-09",
+        },
+      ),
     ]);
   });
 
@@ -398,9 +378,7 @@ describe("GET /sessions", () => {
     for (let i = 0; i < 3; i++) {
       createSession(
         Number(dog.lastInsertRowid),
-        `2026-09-${(i + 8).toString().padStart(2, "0")}`,
-        "Agility",
-        30,
+        { date: `2026-09-${(i + 8).toString().padStart(2, "0")}` },
       );
     }
 
@@ -446,9 +424,7 @@ describe("GET /sessions", () => {
     for (let i = 0; i < 15; i++) {
       createSession(
         Number(dog.lastInsertRowid),
-        `2026-09-${(i + 1).toString().padStart(2, "0")}`,
-        "Agility",
-        30
+        { date: `2026-09-${(i + 1).toString().padStart(2, "0")}` },
       );
     }
 
@@ -521,9 +497,6 @@ describe("GET /sessions/:id", () => {
 
     const session = createSession(
       Number(dog.lastInsertRowid),
-      "2026-09-07",
-      "Agility",
-      30
     );
 
     const response = await request(app).get(
@@ -531,16 +504,12 @@ describe("GET /sessions/:id", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({
-      id: Number(session.lastInsertRowid),
-      dogId: Number(dog.lastInsertRowid),
-      date: "2026-09-07",
-      activity: "Agility",
-      durationMinutes: 30,
-      notes: null,
-      progress: null,
-      focusNextTime: null,
-    });
+    expect(response.body).toEqual(
+      buildBasicSessionResponse(
+        Number(session.lastInsertRowid),
+        Number(dog.lastInsertRowid),
+      ),
+    );
   });
 
   it("returns status 404 when session does not exist", async () => {
@@ -562,9 +531,6 @@ describe("PATCH /sessions/:id", () => {
 
     const session = createSession(
       Number(dog.lastInsertRowid),
-      "2026-09-07",
-      "Agility",
-      30
     );
 
     const response = await request(app)
@@ -575,14 +541,11 @@ describe("PATCH /sessions/:id", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
-      id: Number(session.lastInsertRowid),
-      dogId: Number(dog.lastInsertRowid),
-      date: "2026-09-07",
-      activity: "Agility",
-      durationMinutes: 30,
-      notes: null,
+      ...buildBasicSessionResponse(
+        Number(session.lastInsertRowid),
+        Number(dog.lastInsertRowid),
+      ),
       progress: "Säkrare i slalomen",
-      focusNextTime: null,
     });
   });
 
@@ -621,9 +584,6 @@ describe("PATCH /sessions/:id", () => {
 
     const session = createSession(
       Number(dog.lastInsertRowid),
-      "2026-09-07",
-      "Agility",
-      30,
     );
 
     const response = await request(app)
@@ -648,9 +608,6 @@ describe("DELETE /sessions/:id", () => {
 
     const session = createSession(
       Number(dog.lastInsertRowid),
-      "2026-09-07",
-      "Agility",
-      30
     );
 
     const response = await request(app).delete(
@@ -682,12 +639,7 @@ describe("DELETE /sessions/:id", () => {
   it("does not delete the dog when a session is deleted", async () => {
     const dog = createDog();
 
-    const session = createSession(
-      Number(dog.lastInsertRowid),
-      "2026-09-08",
-      "Agility",
-      30
-    );
+    const session = createSession(Number(dog.lastInsertRowid));
 
     await request(app).delete(`/sessions/${session.lastInsertRowid}`);
 
