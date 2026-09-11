@@ -1,4 +1,5 @@
 import Database from "better-sqlite3";
+import { seedDatabase } from "./seed.js";
 
 const databaseFile =
     process.env.NODE_ENV === "test" ? ":memory:" : "doglog.db";
@@ -26,3 +27,5 @@ db.exec(`
         FOREIGN KEY (dog_id) REFERENCES dogs(id) ON DELETE CASCADE
     )
 `);
+
+seedDatabase(db);
