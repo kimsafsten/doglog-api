@@ -132,4 +132,18 @@ describe("GET /sessions query validation", () => {
       },
     });
   });
+
+  it("returns status 400 when date has valid format but is not a real date", async () => {
+    const response = await request(app)
+      .get("/sessions")
+      .query({ date: "2026-99-99" });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid query parameters",
+      },
+    });
+  });
 });
