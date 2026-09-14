@@ -3,6 +3,7 @@ import { dogRouter } from "./routes/dog.routes.js";
 import { sessionRouter } from "./routes/session.routes.js";
 import swaggerUi from "swagger-ui-express";
 import { openApiDocument } from "./openapi.js";
+import { errorHandler } from "./middleware/error-handler.js";
 
 const app = express();
 
@@ -17,5 +18,7 @@ app.get("/health", (_request, response) => {
 
 app.use("/dogs", dogRouter);
 app.use("/sessions", sessionRouter);
+
+app.use(errorHandler);
 
 export default app;
