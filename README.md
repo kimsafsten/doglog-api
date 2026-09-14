@@ -178,12 +178,14 @@ Example request body for `POST /sessions`:
 
 The API validates request bodies and query parameters.
 
-Examples of handled errors:
+Handled application errors include:
 
 - `VALIDATION_ERROR`
 - `DOG_NOT_FOUND`
 - `DOG_ALREADY_EXISTS`
 - `SESSION_NOT_FOUND`
+
+Unexpected errors return status `500` with the error code `INTERNAL_SERVER_ERROR`.
 
 ## Project Structure
 
