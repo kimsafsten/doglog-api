@@ -2,7 +2,7 @@ import express from "express";
 import { dogRouter } from "./routes/dog.routes.js";
 import { sessionRouter } from "./routes/session.routes.js";
 import swaggerUi from "swagger-ui-express";
-import { openApiDocument } from "./openapi.js";
+import { openApiDocument } from "./openapi/index.js";
 import { errorHandler } from "./middleware/error-handler.js";
 
 const app = express();
@@ -10,7 +10,6 @@ const app = express();
 app.use(express.json());
 // Serve the interactive OpenAPI docs separately from the API routes.
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
-
 
 app.get("/health", (_request, response) => {
     response.status(200).json({ status: "ok" });
