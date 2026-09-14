@@ -90,4 +90,46 @@ describe("GET /sessions query validation", () => {
       },
     });
   });
+
+  it("returns status 400 when limit contains non-numeric characters", async () => {
+    const response = await request(app)
+      .get("/sessions")
+      .query({ limit: "1abc" });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid query parameters",
+      },
+    });
+  });
+
+  it("returns status 400 when page is not an integer string", async () => {
+    const response = await request(app)
+      .get("/sessions")
+      .query({ page: "1.5", limit: 1 });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid query parameters",
+      },
+    });
+  });
+
+  it("returns status 400 when dogId contains non-numeric characters", async () => {
+    const response = await request(app)
+      .get("/sessions")
+      .query({ dogId: "2foo" });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid query parameters",
+      },
+    });
+  });
 });
