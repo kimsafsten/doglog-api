@@ -35,6 +35,12 @@ const getSessionById = (id: string | number | bigint) => {
   `).get(id);
 };
 
+const getDogById = (id: number) => {
+  return db
+    .prepare("SELECT id FROM dogs WHERE id = ?")
+    .get(id);
+};
+
 sessionRouter.get("/", (request, response) => {
   const filters = getSessionFilters(request.query, response);
 
@@ -83,9 +89,7 @@ sessionRouter.post("/", (request, response) => {
 
   const { dogId, date, activity, durationMinutes, notes, progress, focusNextTime } = validationResult.data;
 
-  const dog = db
-    .prepare("SELECT id FROM dogs WHERE id = ?")
-    .get(dogId);
+  const dog = getDogById(dogId);
 
   // Sessions belong to a dog, so we fail fast before writing an orphaned row.
   if (!dog) {
@@ -137,6 +141,10 @@ sessionRouter.patch("/:id", (request, response) => {
     progress,
     focusNextTime,
   } = validationResult.data;
+
+  if (dogId !== undefined && !getDogById(dogId)) {
+    return dogNotFoundResponse(response);
+  }
 
   const result = db.prepare(`
     UPDATE training_sessions

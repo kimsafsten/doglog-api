@@ -174,6 +174,25 @@ describe("PATCH /sessions/:id", () => {
       },
     });
   });
+
+  it("returns status 404 when the updated dog does not exist", async () => {
+    const dog = createDog();
+    const session = createSession(Number(dog.lastInsertRowid));
+
+    const response = await request(app)
+      .patch(`/sessions/${session.lastInsertRowid}`)
+      .send({
+        dogId: 999999,
+      });
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      error: {
+        code: "DOG_NOT_FOUND",
+        message: "Dog not found",
+      },
+    });
+  });
 });
 
 describe("DELETE /sessions/:id", () => {
