@@ -2,6 +2,9 @@
   "name": "doglog-api",
   "version": "1.0.0",
   "description": "REST API for logging dog training sessions",
+  "engines": {
+    "node": ">=24"
+  },
   "main": "index.js",
   "scripts": {
     "test": "vitest run",

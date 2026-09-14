@@ -19,7 +19,7 @@ The project is built with Node.js, TypeScript, Express, SQLite, Zod, Vitest, and
 - Pagination metadata for `GET /sessions` with `limit` and `page`
 - Request validation with Zod
 - Swagger/OpenAPI documentation at `/api-docs`
-- Automatic development seed data on first startup
+- Automatic seed data on startup outside test mode when the database is empty
 - Automated tests with Vitest and Supertest
 
 ## Tech Stack
@@ -35,6 +35,11 @@ The project is built with Node.js, TypeScript, Express, SQLite, Zod, Vitest, and
 
 ## Getting Started
 
+### Prerequisites
+
+- Node.js 24.x
+- npm
+
 ### Install dependencies
 
 ```bash
@@ -47,7 +52,8 @@ npm install
 npm run dev
 ```
 
-The API starts on `http://localhost:3000` by default.
+The API reads `PORT` from the environment and otherwise starts on `http://localhost:3000`.
+The SQLite database file is created in the project root as `doglog.db`.
 
 ### Build the project
 
@@ -60,6 +66,8 @@ npm run build
 ```bash
 npm start
 ```
+
+`npm run dev` and `npm start` both use the same `doglog.db` file.
 
 ### Run tests
 
@@ -77,7 +85,7 @@ http://localhost:3000/api-docs
 
 ## Seed Data
 
-When the app starts in development, it automatically seeds the SQLite database the first time if the `dogs` table is empty.
+When the app starts outside test mode, it automatically seeds the SQLite database if the `dogs` table is empty.
 
 The seed includes:
 
@@ -85,7 +93,8 @@ The seed includes:
 - multiple training sessions
 - different activities and dates
 
-Seed data is skipped in tests because the test environment uses a clean in-memory database.
+Seed data is skipped only when `NODE_ENV === "test"`, because the test environment uses a clean in-memory database.
+If you delete all dogs from `doglog.db` and restart the app, the demo dogs and sessions are inserted again.
 
 ## Endpoints
 
@@ -195,6 +204,6 @@ tests/
 
 ## Notes
 
-- The development database is stored in `doglog.db`.
+- The development and production app both use `doglog.db` unless `NODE_ENV === "test"`.
 - The test suite uses an in-memory SQLite database.
 - Deleting a dog also deletes its training sessions through foreign key cascade delete.
