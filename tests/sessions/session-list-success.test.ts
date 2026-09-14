@@ -6,6 +6,7 @@ import { db } from "../../src/database.js";
 import {
   buildBasicSessionResponse,
   buildFullSessionData,
+  buildSessionListResponse,
   createDog,
   createSession,
 } from "../helpers/session-test-helpers.js";
@@ -14,7 +15,7 @@ import { resetDatabase } from "../helpers/test-db.js";
 resetDatabase();
 
 describe("GET /sessions", () => {
-  it("returns all training sessions", async () => {
+  it("returns paginated training sessions with metadata by default", async () => {
     const dog = createDog();
     const fullSession = buildFullSessionData();
 
@@ -42,13 +43,22 @@ describe("GET /sessions", () => {
     const response = await request(app).get("/sessions");
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual([
-      {
-        id: Number(session.lastInsertRowid),
-        dogId: Number(dog.lastInsertRowid),
-        ...fullSession,
-      },
-    ]);
+    expect(response.body).toEqual(
+      buildSessionListResponse(
+        [
+          {
+            id: Number(session.lastInsertRowid),
+            dogId: Number(dog.lastInsertRowid),
+            ...fullSession,
+          },
+        ],
+        {
+          page: 1,
+          limit: 10,
+          total: 1,
+        },
+      ),
+    );
   });
 
   it("filters training sessions by dogId", async () => {
@@ -63,12 +73,21 @@ describe("GET /sessions", () => {
       .query({ dogId: Number(luna.lastInsertRowid) });
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual([
-      buildBasicSessionResponse(
-        Number(lunaSession.lastInsertRowid),
-        Number(luna.lastInsertRowid),
+    expect(response.body).toEqual(
+      buildSessionListResponse(
+        [
+          buildBasicSessionResponse(
+            Number(lunaSession.lastInsertRowid),
+            Number(luna.lastInsertRowid),
+          ),
+        ],
+        {
+          page: 1,
+          limit: 10,
+          total: 1,
+        },
       ),
-    ]);
+    );
   });
 
   it("filters training sessions by activity", async () => {
@@ -84,12 +103,21 @@ describe("GET /sessions", () => {
       .query({ activity: "Agility" });
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual([
-      buildBasicSessionResponse(
-        Number(agilitySession.lastInsertRowid),
-        Number(dog.lastInsertRowid),
+    expect(response.body).toEqual(
+      buildSessionListResponse(
+        [
+          buildBasicSessionResponse(
+            Number(agilitySession.lastInsertRowid),
+            Number(dog.lastInsertRowid),
+          ),
+        ],
+        {
+          page: 1,
+          limit: 10,
+          total: 1,
+        },
       ),
-    ]);
+    );
   });
 
   it("combines dogId and activity filters", async () => {
@@ -112,12 +140,21 @@ describe("GET /sessions", () => {
       });
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual([
-      buildBasicSessionResponse(
-        Number(lunaAgilitySession.lastInsertRowid),
-        Number(luna.lastInsertRowid),
+    expect(response.body).toEqual(
+      buildSessionListResponse(
+        [
+          buildBasicSessionResponse(
+            Number(lunaAgilitySession.lastInsertRowid),
+            Number(luna.lastInsertRowid),
+          ),
+        ],
+        {
+          page: 1,
+          limit: 10,
+          total: 1,
+        },
       ),
-    ]);
+    );
   });
 
   it("filters training sessions by date", async () => {
@@ -136,13 +173,22 @@ describe("GET /sessions", () => {
       .query({ date: "2026-09-08" });
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual([
-      buildBasicSessionResponse(
-        Number(session1.lastInsertRowid),
-        Number(dog.lastInsertRowid),
-        { date: "2026-09-08" },
+    expect(response.body).toEqual(
+      buildSessionListResponse(
+        [
+          buildBasicSessionResponse(
+            Number(session1.lastInsertRowid),
+            Number(dog.lastInsertRowid),
+            { date: "2026-09-08" },
+          ),
+        ],
+        {
+          page: 1,
+          limit: 10,
+          total: 1,
+        },
       ),
-    ]);
+    );
   });
 
   it("limits the number of returned training sessions", async () => {
@@ -165,22 +211,31 @@ describe("GET /sessions", () => {
       .query({ limit: 2 });
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual([
-      buildBasicSessionResponse(
-        Number(session3.lastInsertRowid),
-        Number(dog.lastInsertRowid),
+    expect(response.body).toEqual(
+      buildSessionListResponse(
+        [
+          buildBasicSessionResponse(
+            Number(session3.lastInsertRowid),
+            Number(dog.lastInsertRowid),
+            {
+              date: "2026-09-10",
+            },
+          ),
+          buildBasicSessionResponse(
+            Number(session2.lastInsertRowid),
+            Number(dog.lastInsertRowid),
+            {
+              date: "2026-09-09",
+            },
+          ),
+        ],
         {
-          date: "2026-09-10",
+          page: 1,
+          limit: 2,
+          total: 3,
         },
       ),
-      buildBasicSessionResponse(
-        Number(session2.lastInsertRowid),
-        Number(dog.lastInsertRowid),
-        {
-          date: "2026-09-09",
-        },
-      ),
-    ]);
+    );
   });
 
   it("paginates the returned training sessions", async () => {
@@ -203,15 +258,24 @@ describe("GET /sessions", () => {
       .query({ page: 2, limit: 1 });
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual([
-      buildBasicSessionResponse(
-        Number(session2.lastInsertRowid),
-        Number(dog.lastInsertRowid),
+    expect(response.body).toEqual(
+      buildSessionListResponse(
+        [
+          buildBasicSessionResponse(
+            Number(session2.lastInsertRowid),
+            Number(dog.lastInsertRowid),
+            {
+              date: "2026-09-09",
+            },
+          ),
+        ],
         {
-          date: "2026-09-09",
+          page: 2,
+          limit: 1,
+          total: 3,
         },
       ),
-    ]);
+    );
   });
 
   it("returns an empty array when page is outside the result set", async () => {
@@ -228,10 +292,16 @@ describe("GET /sessions", () => {
       .query({ page: 5, limit: 2 });
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual([]);
+    expect(response.body).toEqual(
+      buildSessionListResponse([], {
+        page: 5,
+        limit: 2,
+        total: 3,
+      }),
+    );
   });
 
-  it("returns 10 sessions by default when no limit is provided", async () => {
+  it("returns page 1 with limit 10 and the total by default", async () => {
     const dog = createDog();
 
     for (let i = 0; i < 15; i++) {
@@ -243,6 +313,12 @@ describe("GET /sessions", () => {
     const response = await request(app).get("/sessions");
 
     expect(response.status).toBe(200);
-    expect(response.body.length).toBe(10);
+    expect(response.body.data.length).toBe(10);
+    expect(response.body.pagination).toEqual({
+      page: 1,
+      limit: 10,
+      total: 15,
+      totalPages: 2,
+    });
   });
 });

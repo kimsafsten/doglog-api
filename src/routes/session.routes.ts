@@ -6,6 +6,7 @@ import {
   sessionNotFoundResponse,
 } from "./route-helpers.js";
 import {
+  buildSessionCountQuery,
   buildSessionListQuery,
   getSessionFilters,
 } from "./session-list-helpers.js";
@@ -42,9 +43,22 @@ sessionRouter.get("/", (request, response) => {
   }
 
   const { query, params } = buildSessionListQuery(sessionSelect, filters);
+  const { query: countQuery, params: countParams } = buildSessionCountQuery(filters);
   const sessions = db.prepare(query).all(...params);
+  const countResult = db.prepare(countQuery).get(...countParams) as { total: number };
 
-  return response.status(200).json(sessions);
+  return response.status(200).json({
+    data: sessions,
+    pagination: {
+      page: filters.page,
+      limit: filters.limit,
+      total: countResult.total,
+      totalPages:
+        countResult.total === 0
+          ? 0
+          : Math.ceil(countResult.total / filters.limit),
+    },
+  });
 });
 
 sessionRouter.get("/:id", (request, response) => {

@@ -197,23 +197,20 @@ export const openApiDocument = {
                         name: "page",
                         in: "query",
                         required: false,
-                        description: "Page number used together with limit",
+                        description: "Page number used together with limit. Defaults to 1",
                         schema: {
                             type: "integer",
-                            example: 2,
+                            example: 1,
                         },
                     },
                 ],
                 responses: {
                     "200": {
-                        description: "List of training sessions",
+                        description: "Paginated list of training sessions",
                         content: {
                             "application/json": {
                                 schema: {
-                                    type: "array",
-                                    items: {
-                                        $ref: "#/components/schemas/Session",
-                                    },
+                                    $ref: "#/components/schemas/SessionListResponse",
                                 },
                             },
                         },
@@ -375,6 +372,29 @@ export const openApiDocument = {
                     notes: { type: "string", example: "Bra energi" },
                     progress: { type: "string", example: "Säkrare i slalomen" },
                     focusNextTime: { type: "string", example: "Träna lugna starter" },
+                },
+            },
+            Pagination: {
+                type: "object",
+                properties: {
+                    page: { type: "integer", example: 1 },
+                    limit: { type: "integer", example: 10 },
+                    total: { type: "integer", example: 42 },
+                    totalPages: { type: "integer", example: 5 },
+                },
+            },
+            SessionListResponse: {
+                type: "object",
+                properties: {
+                    data: {
+                        type: "array",
+                        items: {
+                            $ref: "#/components/schemas/Session",
+                        },
+                    },
+                    pagination: {
+                        $ref: "#/components/schemas/Pagination",
+                    },
                 },
             },
             CreateSessionInput: {

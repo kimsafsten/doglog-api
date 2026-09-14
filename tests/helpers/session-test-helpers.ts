@@ -7,6 +7,12 @@ type SessionDefaults = {
   durationMinutes: number;
 };
 
+type SessionListPagination = {
+  page: number;
+  limit: number;
+  total: number;
+};
+
 export const createSession = (
   dogId: number,
   overrides: Partial<SessionDefaults> = {},
@@ -66,5 +72,19 @@ export const buildBasicSessionResponse = (
     focusNextTime: null,
   };
 };
+
+export const buildSessionListResponse = <T>(
+  data: T[],
+  pagination: SessionListPagination,
+) => ({
+  data,
+  pagination: {
+    ...pagination,
+    totalPages:
+      pagination.total === 0
+        ? 0
+        : Math.ceil(pagination.total / pagination.limit),
+  },
+});
 
 export { createDog };

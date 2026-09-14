@@ -16,7 +16,7 @@ The project is built with Node.js, TypeScript, Express, SQLite, Zod, Vitest, and
 - CRUD for dogs
 - CRUD for training sessions
 - Filtering sessions by `dogId`, `activity`, and `date`
-- Pagination for `GET /sessions` with `limit` and `page`
+- Pagination metadata for `GET /sessions` with `limit` and `page`
 - Request validation with Zod
 - Swagger/OpenAPI documentation at `/api-docs`
 - Automatic development seed data on first startup
@@ -123,8 +123,33 @@ Supported query parameters for `GET /sessions`:
 - `dogId`
 - `activity`
 - `date`
-- `limit`
-- `page`
+- `limit` defaults to `10`
+- `page` defaults to `1`
+
+Response format for `GET /sessions`:
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "dogId": 1,
+      "date": "2026-09-07",
+      "activity": "Agility",
+      "durationMinutes": 30,
+      "notes": "Bra fokus",
+      "progress": "Säkrare i slalom",
+      "focusNextTime": "Träna starter"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 1,
+    "totalPages": 1
+  }
+}
+```
 
 Example request body for `POST /sessions`:
 
