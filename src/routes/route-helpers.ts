@@ -54,8 +54,9 @@ export const parsePositiveInt = (value: unknown) => {
     return null;
   }
 
-  const parsedValue = parseInt(value, 10);
+  if (!/^\d+$/.test(value)) {
+    return null;
+  }
 
-  // Returning null lets each route decide whether the value was optional or invalid.
-  return Number.isNaN(parsedValue) ? null : parsedValue;
+  return parseInt(value, 10);
 };
