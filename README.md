@@ -193,8 +193,9 @@ Unexpected errors return status `500` with the error code `INTERNAL_SERVER_ERROR
 src/
   app.ts
   database.ts
-  openapi.ts
   seed.ts
+  middleware/
+  openapi/
   routes/
   schemas/
 
